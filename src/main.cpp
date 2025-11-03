@@ -1,14 +1,16 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include <OneButton.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
+
+//#include <Adafruit_GFX.h>
+//#include <Adafruit_SSD1306.h>
 #include <Adafruit_NeoPixel.h>
 #include <ELECHOUSE_CC1101.h>
 
 #include "config.h"
+#include "animation.h"
 
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
 Adafruit_NeoPixel strip(NUM_LEDS, NEOPIXEL, NEO_GRB + NEO_KHZ800);
 OneButton leftBtn, upBtn, rightBtn, downBtn, enterBtn;
 ELECHOUSE_CC1101 *cc1101;
@@ -47,14 +49,7 @@ void setup() {
   upBtn.attachClick(handleUpClick);
   downBtn.attachClick(handleDownClick);
   enterBtn.attachClick(handleEnterClick);
-  
-  // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
-  if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
-    Serial.println(F("SSD1306 allocation failed"));
-    for(;;); // Don't proceed, loop forever
-  }
-  display.display();
-  
+
   for(int i=0;i<NUM_LEDS;i++) {
     strip.setPixelColor(i, strip.Color(random(256), random(256), random(256)));
   }
@@ -64,6 +59,8 @@ void setup() {
   } else {
     Serial.println("CC1101 not conected");
   }
+  beginU8g2();
+  drawSplashTexts();
 }
 
 void loop() {
@@ -72,4 +69,5 @@ void loop() {
   rightBtn.tick();
   downBtn.tick();
   enterBtn.tick();
+  updateAnimation();
 }
