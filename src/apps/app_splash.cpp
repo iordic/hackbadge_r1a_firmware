@@ -2,10 +2,15 @@
 #include <U8g2lib.h>
 #include <L33T_Animation.h>
 
+#include "app.h"
+#include "display.h"
+
 #define phantom_animation_width 30
 #define phantom_animation_height 50
 const int sizeBytes = 200;
 const int frames = 4;
+// width, height, frame_delay (ms), xInc, yInc, xStart, xEnd, yStart, yEnd, nFrames
+L33T_Animation PHANTOM(30, 50, 250, 0, 0, 0, 0, 10, 10, frames);
 static unsigned char phantom_animation_bits[frames][sizeBytes] = {
    // frame 1
    0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x0e, 0x00, 0x00, 0x07, 0x0e, 0x00,
@@ -81,6 +86,53 @@ static unsigned char phantom_animation_bits[frames][sizeBytes] = {
    0x00, 0x00, 0xfc, 0x0f, 0x00, 0x00, 0xf0, 0x03
 };
 
-void beginU8g2();
-void drawSplashTexts();
-void updateAnimation();
+void splash_onStart() {}
+
+void splash_onStop() {}
+
+void splash_onEvent(int evt) {
+    switch (evt) {
+    case BTN_LEFT:
+        Serial.println("Pressed lefT!");
+        break;
+    case BTN_UP:
+        break;
+    case BTN_RIGHT:
+        break;
+    case BTN_DOWN:
+        break;
+    case BTN_OK:
+        Serial.println("ok!");
+        break;
+    case BTN_BACK:
+        Serial.println("Back!");
+        break;
+    default:
+        break;
+    }
+}
+
+void splash_onDraw(U8G2 *u8g2) {
+    u8g2->clearBuffer();
+    u8g2->drawFrame(38, 16, 88, 32);
+    u8g2->setFont(u8g2_font_5x8_mf);
+    u8g2->drawStr(44, 18, "badge:-$ whoami");
+    u8g2->setFont(u8g2_font_littlemissloudonbold_tr);
+    u8g2->drawStr(42, 30, "@iordic");
+    u8g2->setFont(u8g2_font_6x10_mf);
+    u8g2->drawUTF8(40, 42, "Jordi Castelló");
+
+    PHANTOM.chkAnimation(true);
+    u8g2->drawXBM(PHANTOM.getXpos(), PHANTOM.getYpos(), PHANTOM.getWidth(), PHANTOM.getHeight(), phantom_animation_bits[PHANTOM.getCurrentFrame()]); 
+    if (PHANTOM.toReset())
+        PHANTOM.resetAni();
+    u8g2->sendBuffer();
+}
+
+App app_splash = {
+  .name = "Splash",
+  .onStart = splash_onStart,
+  .onEvent = splash_onEvent,
+  .onDraw = splash_onDraw,
+  .onStop = splash_onStop
+};

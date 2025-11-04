@@ -1,9 +1,11 @@
+#ifndef CONFIG_H_
+#define CONFIG_H_
 #define RECEIVE_ATTR IRAM_ATTR
 
 #define SERIAL_BAUDRATE 115200
 
 #define OLED_RESET     -1
-#define SCREEN_ADDRESS 0x3c
+#define SCREEN_ADDRESS 0x3c // default value should be 0x3c
 #define SCREEN_WIDTH   128
 #define SCREEN_HEIGHT  64
 #define NUM_LEDS 2
@@ -31,4 +33,5 @@
     #define BUTTON_RIGHT  3
     #define BUTTON_DOWN   1
     #define BUTTON_ENTER  8
+#endif
 #endif
