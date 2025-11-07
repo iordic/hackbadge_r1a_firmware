@@ -42,7 +42,7 @@ void input_init() {
     upBtn.attachClick(handleUp);
     downBtn.attachClick(handleDown);
     enterBtn.attachClick(handleOk);
-    enterBtn.attachDoubleClick(handleBack);
+    enterBtn.attachLongPressStart(handleBack);
 }
 
 void ticks() {
