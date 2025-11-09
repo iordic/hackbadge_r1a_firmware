@@ -19,6 +19,7 @@ void splash_onEvent(int evt) {
 
 void splash_onDraw(U8G2 *u8g2) {
     u8g2->clearBuffer();
+    u8g2->setDrawColor(1);
     u8g2->drawFrame(38, 16, 88, 32);
     u8g2->setFont(u8g2_font_5x8_mf);
     u8g2->drawStr(44, 18, "badge:-$ whoami");

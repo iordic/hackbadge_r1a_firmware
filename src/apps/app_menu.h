@@ -15,7 +15,7 @@ struct MenuNode {
 struct Menu {
     SimpleList<MenuNode>* list;
     Menu                * parentMenu;
-    uint8_t               selected;
+    int8_t               selected;
     std::function<void()> build; // function that is executed when button is clicked
 };
 
