@@ -34,7 +34,9 @@ unsigned long previousMillis = 0;
 const long interval = 300; // interval to take game turns, 300 is pretty nice
 bool inputLock = false;
 
-void snake_onStart() {}
+void snake_onStart() {
+  restartGame();
+}
 void snake_onStop() {}
 
 void snake_onEvent(int evt) {
@@ -177,9 +179,16 @@ void snake_onDraw(U8G2 *u8g2) {
     u8g2->drawStr(113,12,  "!");
     u8g2->drawStr(119,10,  "!");
 
+    u8g2->drawStr(70,24, "by johnpathe"); // score stuff
+  
     u8g2->drawFrame(0,0,64,64); // divider line, pretty
+
+    u8g2->drawStr(70,40, "Score: "); // score stuff
+    itoa(snakeLength-5, scoreText, 10);
+    u8g2->drawStr(98,40,  scoreText);
+
   if (gameOver) {
-    u8g2->drawStr(70,42, "You Lose!"); // show 'you lose'
+    u8g2->drawStr(70,50, "You Lose!"); // show 'you lose'
   }
   } while ( u8g2->nextPage() );
 }
