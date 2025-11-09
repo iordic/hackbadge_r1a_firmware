@@ -4,45 +4,61 @@
 #include "app_menu.h"
 
 extern App app_splash;
+extern App app_snake;
 
 Menu* currentMenu;
 
 Menu mainMenu;
 Menu subghzMenu;
+Menu bleMenu;
+Menu wifiMenu;
+Menu gamesMenu;
+Menu settingsMenu;
 
 int row;
 
 void menu_onStart() {
     row = 0;
     createMenu(&mainMenu, NULL, []() {
-        addMenuNode(&mainMenu, &WAVE_ICON, MENU_ITEM_SUBGHZ, &subghzMenu);
-        addMenuNode(&mainMenu, &BLUETOOTH_ICON, MENU_ITEM_BLE, &subghzMenu);
-        addMenuNode(&mainMenu, &WIFI_ICON, MENU_ITEM_WIFI, &subghzMenu);
-        addMenuNode(&mainMenu, &PUZZLE_ICON, MENU_ITEM_GAMES, &subghzMenu);
-        addMenuNode(&mainMenu, &WRENCH_ICON, MENU_ITEM_SETTINGS, &subghzMenu);
+        addMenuNode(&mainMenu, &WAVE_ICON, MENU_ITEM_SUBGHZ, &app_splash, &subghzMenu);
+        addMenuNode(&mainMenu, &BLUETOOTH_ICON, MENU_ITEM_BLE, &app_splash, &bleMenu);
+        addMenuNode(&mainMenu, &WIFI_ICON, MENU_ITEM_WIFI, &app_splash, &wifiMenu);
+        addMenuNode(&mainMenu, &PUZZLE_ICON, MENU_ITEM_GAMES, &app_splash, &gamesMenu);
+        addMenuNode(&mainMenu, &WRENCH_ICON, MENU_ITEM_SETTINGS, &app_splash, &settingsMenu);
+    });
+
+    createMenu(&subghzMenu, &mainMenu, []() {
+        addMenuNode(&subghzMenu, &GEAR_ICON, MENU_ITEM_CONFIG, &mainMenu);
+        addMenuNode(&subghzMenu, &UP_ICON, MENU_ITEM_TRANSMIT, &mainMenu);
+        addMenuNode(&subghzMenu, &DOWN_ICON, MENU_ITEM_RECEIVE, &mainMenu);
+    });
+    createMenu(&gamesMenu, &mainMenu, []() {
+        addMenuNode(&gamesMenu, &CURSOR_DOWN_ICON, MENU_ITEM_SNAKE, &mainMenu, &app_snake);
     });
     currentMenu = &mainMenu;
     currentMenu->selected = 0;
-    currentMenu->build();
+    mainMenu.build();
+    subghzMenu.build();
+    gamesMenu.build();
 }
 
 void menu_onStop() {}
 
 void menu_onEvent(int evt) {
-  if (evt == BTN_BACK) {
-    extern App *currentApp;
-    currentApp = &app_splash;
-    currentApp->onStart();
-  } else if (evt == BTN_UP) {
-    currentMenu->selected--;
-  } else if (evt == BTN_DOWN) {
-    currentMenu->selected++;
-  }
+    if (evt == BTN_BACK) {
+        currentMenu->list->get(currentMenu->selected).hold();
+    } else if (evt == BTN_OK) {
+        currentMenu->list->get(currentMenu->selected).click();
+    } else if (evt == BTN_UP) {
+        currentMenu->selected--;
+    } else if (evt == BTN_DOWN) {
+        currentMenu->selected++;
+    }
 }
 
 void menu_onDraw(U8G2 *u8g2) {
     u8g2->clearBuffer();
- const int visibleCount = 4;  // número de líneas visibles en pantalla
+    const int visibleCount = 4;  // número de líneas visibles en pantalla
     String tmp;
     int tmpLen;
 
@@ -90,8 +106,7 @@ void menu_onDraw(U8G2 *u8g2) {
 // Adapted snippet taken from esp8266_deauther
 void changeMenu(Menu* menu) {
     currentMenu = menu;
-    menu->selected = 0;
-    menu->build();  
+    menu->selected = 0;  
 }
 
 void createMenu(Menu* menu, Menu* parent, std::function<void()>build) {
@@ -113,7 +128,7 @@ void addMenuNode(Menu* menu, std::function<uint16_t()>getIcon, std::function<Str
 
 
 void addMenuNode(Menu* menu, std::function<uint16_t()>getIcon, std::function<String()>getStr, std::function<void()>click) {
-    addMenuNode(menu, getIcon, getStr, click, NULL);
+    addMenuNode(menu, getIcon, getStr, click, [menu]() {changeMenu(menu->parentMenu);});
 }
 
 void addMenuNode(Menu* menu, std::function<String()>getStr, std::function<void()>click) {
@@ -144,6 +159,28 @@ void addMenuNode(Menu* menu, const char* ptr, Menu* next) {
 
 void addMenuNode(Menu* menu, const uint16_t *icon, const char* ptr, Menu* next) {
     addMenuNode(menu, [icon]() -> uint16_t {return *icon;}, [ptr]() {return String(ptr);}, next);
+}
+
+void addMenuNode(Menu* menu, const uint16_t *icon, const char* ptr, App* back, Menu* next) {
+    addMenuNode(menu, [icon]() -> uint16_t {return *icon;}, [ptr]() {return String(ptr);}, 
+    [next]() {
+        changeMenu(next);
+    },
+    [back]() {
+        extern App *currentApp;
+        currentApp = back;
+        currentApp->onStart();
+    });
+}
+
+void addMenuNode(Menu* menu, const uint16_t *icon, const char* ptr, Menu* back, App* next) {
+    addMenuNode(menu, [icon]() -> uint16_t {return *icon;}, [ptr]() {return String(ptr);}, [next]() {
+        extern App *currentApp;
+        currentApp = next;
+        currentApp->onStart();
+    }, [back]() {
+        changeMenu(back);
+    });
 }
 
 App app_menu = {
