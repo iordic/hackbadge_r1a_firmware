@@ -12,6 +12,7 @@ const uint16_t UP_ICON PROGMEM = 0x0052;
 const uint16_t DOWN_ICON PROGMEM = 0x004f;
 const uint16_t CURSOR_DOWN_ICON PROGMEM = 0x0042;
 const uint16_t ERROR_ICON PROGMEM = 0x0079;
+const uint16_t MEGAPHONE_ICON PROGMEM = 0x0069;
 
 // Menu item labels
 const char MENU_ITEM_SUBGHZ[] PROGMEM = "Subghz";
@@ -24,3 +25,4 @@ const char MENU_ITEM_CONFIG[] PROGMEM = "Config";
 const char MENU_ITEM_TRANSMIT[] PROGMEM = "Transmit";
 const char MENU_ITEM_RECEIVE[] PROGMEM = "Receive";
 const char MENU_ITEM_SNAKE[] PROGMEM = "Snake";
+const char MENU_ITEM_JAMMER[] PROGMEM = "Jammer";

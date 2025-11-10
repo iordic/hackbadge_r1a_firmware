@@ -8,6 +8,7 @@
 
 extern App app_splash;
 extern App app_snake;
+extern App app_jammer;
 
 Menu mainMenu;
 // Submenus
@@ -18,14 +19,18 @@ Menu gamesMenu;
 Menu settingsMenu;
 // Subghz submenus
 Menu radioConfigMenu;
+Menu radioTransmitMenu;
+Menu radioReceiveMenu;
 
 extern Menu* currentMenu;
 
 int row;
 int frequencySelected = FREQ_433MHZ, presetSelected = PRESET_AM650;
+uint32_t availableRadio = 0;
 
 void menu_onStart() {
     row = 0;
+    // Main menu
     createMenu(&mainMenu, NULL, []() {
         addMenuNode(&mainMenu, &WAVE_ICON, MENU_ITEM_SUBGHZ, &app_splash, &subghzMenu);
         addMenuNode(&mainMenu, &BLUETOOTH_ICON, MENU_ITEM_BLE, &app_splash, &bleMenu);
@@ -33,30 +38,35 @@ void menu_onStart() {
         addMenuNode(&mainMenu, &PUZZLE_ICON, MENU_ITEM_GAMES, &app_splash, &gamesMenu);
         addMenuNode(&mainMenu, &WRENCH_ICON, MENU_ITEM_SETTINGS, &app_splash, &settingsMenu);
     });
-
+    // Games submenu
+    createMenu(&gamesMenu, &mainMenu, []() {
+        addMenuNode(&gamesMenu, &CURSOR_DOWN_ICON, MENU_ITEM_SNAKE, &mainMenu, &app_snake);
+    });
+    // Subghz submenu
     createMenu(&subghzMenu, &mainMenu, []() {
         RadioTaskParams *params = (RadioTaskParams *) malloc(sizeof(RadioTaskParams));
         params->operation = CHECK;
         params->callerHandle = xTaskGetCurrentTaskHandle();
-        uint32_t availableRadio;
         xTaskCreatePinnedToCore(radio_task, "RadioCheckWorker", 2048, params, 1, NULL, 1);
         xTaskNotifyWait(0, 0, &availableRadio, portMAX_DELAY);
         if (availableRadio) {
             addMenuNode(&subghzMenu, &GEAR_ICON, MENU_ITEM_CONFIG, &mainMenu);
-            addMenuNode(&subghzMenu, &UP_ICON, MENU_ITEM_TRANSMIT, &mainMenu);
+            addMenuNode(&subghzMenu, &UP_ICON, MENU_ITEM_TRANSMIT, &radioTransmitMenu);
             addMenuNode(&subghzMenu, &DOWN_ICON, MENU_ITEM_RECEIVE, &mainMenu);
         } else {
             addMenuNode(&subghzMenu, &ERROR_ICON, MENU_ITEM_RADIO_NOT_FOUND, &mainMenu);
         }
     });
-    createMenu(&gamesMenu, &mainMenu, []() {
-        addMenuNode(&gamesMenu, &CURSOR_DOWN_ICON, MENU_ITEM_SNAKE, &mainMenu, &app_snake);
+    // Radio transmit submenu
+    createMenu(&radioTransmitMenu, &subghzMenu, []() {
+        addMenuNode(&radioTransmitMenu, &MEGAPHONE_ICON, MENU_ITEM_JAMMER, &subghzMenu, &app_jammer);
     });
-    currentMenu = &mainMenu;
+    if (!currentMenu) currentMenu = &mainMenu;
     currentMenu->selected = 0;
     mainMenu.build();
     subghzMenu.build();
     gamesMenu.build();
+    radioTransmitMenu.build();
 }
 
 void menu_onStop() {}

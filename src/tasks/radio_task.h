@@ -1,10 +1,12 @@
 #ifndef RADIO_TASK_H_
 #define RADIO_TASK_H_
+#include <Arduino.h>
 #include <ELECHOUSE_CC1101.h>
 
 enum RadioOperation {
   CHECK = 0,
-  JAMMER,
+  START_JAMMER,
+  STOP_JAMMER,
   TX_MODE,
   RX_MODE
 };
@@ -25,10 +27,13 @@ enum PresetConfigs {
 
 typedef struct {
   int operation; 
-  float frequency;
+  int frequency;
   int preset;
   TaskHandle_t callerHandle;  // para avisar a quien devolver el resultado
 } RadioTaskParams;
 
 void radio_task(void *pv);
+void loadConfiguration(int frequencyOption, int preset);
+float getFrequencyFromEnum(int freqEnum);
+void lockJamming();
 #endif

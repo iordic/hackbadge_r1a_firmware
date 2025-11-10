@@ -82,7 +82,6 @@ bool onSnakeBody(int x,int y) {
 }
 
 void logic() {
-  
   // if apple is out of view, spawn it on the game grid at a random location where the snake doesn't occupy
   if (apple[0]== -1 && apple[1] == -1) {
     do {

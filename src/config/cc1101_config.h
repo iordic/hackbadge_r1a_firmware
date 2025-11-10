@@ -2,7 +2,7 @@
 #define CC11O1_CONFIG_H_
 #include <ELECHOUSE_CC1101.h>
 
-const uint8_t subghz_device_cc1101_preset_ook_270khz_async_regs[] = {
+const uint8_t subghz_device_cc1101_preset_ook_270khz_async_regs[] PROGMEM = {
     // https://e2e.ti.com/support/wireless-connectivity/sub-1-ghz-group/sub-1-ghz/f/sub-1-ghz-forum/382066/cc1101---don-t-know-the-correct-registers-configuration
 
     /* GPIO GD0 */
@@ -74,7 +74,7 @@ const uint8_t subghz_device_cc1101_preset_ook_270khz_async_regs[] = {
     0x00,
 };
 
-const uint8_t subghz_device_cc1101_preset_ook_650khz_async_regs[] = {
+const uint8_t subghz_device_cc1101_preset_ook_650khz_async_regs[] PROGMEM = {
     // https://e2e.ti.com/support/wireless-connectivity/sub-1-ghz-group/sub-1-ghz/f/sub-1-ghz-forum/382066/cc1101---don-t-know-the-correct-registers-configuration
 
     /* GPIO GD0 */
@@ -150,7 +150,7 @@ const uint8_t subghz_device_cc1101_preset_ook_650khz_async_regs[] = {
     0x00,
 };
 
-const uint8_t subghz_device_cc1101_preset_2fsk_dev2_38khz_async_regs[] = {
+const uint8_t subghz_device_cc1101_preset_2fsk_dev2_38khz_async_regs[] PROGMEM = {
 
     /* GPIO GD0 */
     CC1101_IOCFG0,
@@ -221,7 +221,7 @@ const uint8_t subghz_device_cc1101_preset_2fsk_dev2_38khz_async_regs[] = {
     0x00,
 };
 
-const uint8_t subghz_device_cc1101_preset_2fsk_dev47_6khz_async_regs[] = {
+const uint8_t subghz_device_cc1101_preset_2fsk_dev47_6khz_async_regs[] PROGMEM = {
 
     /* GPIO GD0 */
     CC1101_IOCFG0,
@@ -292,7 +292,7 @@ const uint8_t subghz_device_cc1101_preset_2fsk_dev47_6khz_async_regs[] = {
     0x00,
 };
 
-const uint8_t subghz_device_cc1101_preset_msk_99_97kb_async_regs[] = {
+const uint8_t subghz_device_cc1101_preset_msk_99_97kb_async_regs[] PROGMEM = {
     /* GPIO GD0 */
     CC1101_IOCFG0,
     0x06,
@@ -368,7 +368,7 @@ const uint8_t subghz_device_cc1101_preset_msk_99_97kb_async_regs[] = {
     0x00,
 };
 
-const uint8_t subghz_device_cc1101_preset_gfsk_9_99kb_async_regs[] = {
+const uint8_t subghz_device_cc1101_preset_gfsk_9_99kb_async_regs[] PROGMEM = {
 
     CC1101_IOCFG0,
     0x06, //GDO0 Output Pin Configuration

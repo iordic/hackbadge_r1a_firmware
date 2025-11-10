@@ -5,9 +5,12 @@
 #include "config/io_config.h"
 #include "tasks/ui_task.h"
 #include "tasks/leds_task.h"
+#include "radio.h"
+
 
 void setup() {
   display_init();
+  radio_init();
   input_init();
   xTaskCreatePinnedToCore(ui_task, "ui_task", 4096, NULL, 1, NULL, 0);
   xTaskCreatePinnedToCore(leds_task, "leds_task", 4096, NULL, 1, NULL, 0);
