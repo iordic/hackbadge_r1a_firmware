@@ -10,7 +10,7 @@ void leds_task(void *pv) {
     while (true) {
         color = selected > 0 ? strip.getPixelColor(selected - 1) : strip.Color(random(256), random(256), random(256));
         strip.setPixelColor(selected, color);
-        selected = (++selected) % 2;
+        selected = (++selected) % NUM_LEDS;
         strip.show();
         vTaskDelay(1000);
     }

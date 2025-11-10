@@ -3,19 +3,25 @@
 #include "display.h"
 #include "app_menu.h"
 
+#include "tasks/radio_task.h"
+
 extern App app_splash;
 extern App app_snake;
 
 Menu* currentMenu;
 
 Menu mainMenu;
+// Submenus
 Menu subghzMenu;
 Menu bleMenu;
 Menu wifiMenu;
 Menu gamesMenu;
 Menu settingsMenu;
+// Subghz submenus
+Menu radioConfigMenu;
 
 int row;
+int frequencySelected = FREQ_433MHZ, presetSelected = PRESET_AM650;
 
 void menu_onStart() {
     row = 0;
@@ -28,9 +34,19 @@ void menu_onStart() {
     });
 
     createMenu(&subghzMenu, &mainMenu, []() {
-        addMenuNode(&subghzMenu, &GEAR_ICON, MENU_ITEM_CONFIG, &mainMenu);
-        addMenuNode(&subghzMenu, &UP_ICON, MENU_ITEM_TRANSMIT, &mainMenu);
-        addMenuNode(&subghzMenu, &DOWN_ICON, MENU_ITEM_RECEIVE, &mainMenu);
+        RadioTaskParams *params = (RadioTaskParams *) malloc(sizeof(RadioTaskParams));
+        params->operation = CHECK;
+        params->callerHandle = xTaskGetCurrentTaskHandle();
+        uint32_t availableRadio;
+        xTaskCreatePinnedToCore(radio_task, "RadioCheckWorker", 2048, params, 1, NULL, 1);
+        xTaskNotifyWait(0, 0, &availableRadio, portMAX_DELAY);
+        if (availableRadio) {
+            addMenuNode(&subghzMenu, &GEAR_ICON, MENU_ITEM_CONFIG, &mainMenu);
+            addMenuNode(&subghzMenu, &UP_ICON, MENU_ITEM_TRANSMIT, &mainMenu);
+            addMenuNode(&subghzMenu, &DOWN_ICON, MENU_ITEM_RECEIVE, &mainMenu);
+        } else {
+            addMenuNode(&subghzMenu, &ERROR_ICON, MENU_ITEM_RADIO_NOT_FOUND, &mainMenu);
+        }
     });
     createMenu(&gamesMenu, &mainMenu, []() {
         addMenuNode(&gamesMenu, &CURSOR_DOWN_ICON, MENU_ITEM_SNAKE, &mainMenu, &app_snake);

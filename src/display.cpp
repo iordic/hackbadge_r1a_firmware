@@ -1,5 +1,5 @@
 #include "display.h"
-#include "config.h"
+#include "config/io_config.h"
 #include <U8g2lib.h>
 #include <Wire.h>
 
