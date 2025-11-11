@@ -23,7 +23,7 @@
     #define CC1101_MOSI  6
     #define CC1101_CS    7 
     #define CC1101_GDO0 20
-    #define CC1101_GDO2 -1 //21
+    #define CC1101_GDO2 -1 //21 // we are out of pins, so we must use gdo0 for both, receive and transmit
     #define I2C_SDA 10
     #define I2C_SCL  9
     #define NEOPIXEL 0

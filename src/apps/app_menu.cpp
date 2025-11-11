@@ -18,7 +18,6 @@ Menu wifiMenu;
 Menu gamesMenu;
 Menu settingsMenu;
 // Subghz submenus
-Menu radioConfigMenu;
 Menu radioTransmitMenu;
 Menu radioReceiveMenu;
 
@@ -50,7 +49,6 @@ void menu_onStart() {
         xTaskCreatePinnedToCore(radio_task, "RadioCheckWorker", 2048, params, 1, NULL, 1);
         xTaskNotifyWait(0, 0, &availableRadio, portMAX_DELAY);
         if (availableRadio) {
-            addMenuNode(&subghzMenu, &GEAR_ICON, MENU_ITEM_CONFIG, &mainMenu);
             addMenuNode(&subghzMenu, &UP_ICON, MENU_ITEM_TRANSMIT, &radioTransmitMenu);
             addMenuNode(&subghzMenu, &DOWN_ICON, MENU_ITEM_RECEIVE, &mainMenu);
         } else {
@@ -61,11 +59,17 @@ void menu_onStart() {
     createMenu(&radioTransmitMenu, &subghzMenu, []() {
         addMenuNode(&radioTransmitMenu, &MEGAPHONE_ICON, MENU_ITEM_JAMMER, &subghzMenu, &app_jammer);
     });
+    // Settings submenu
+    createMenu(&settingsMenu, &mainMenu, []() {
+        addMenuNode(&settingsMenu, &RADIO_ICON, MENU_ITEM_RADIO, &mainMenu);
+        addMenuNode(&settingsMenu, &RGB_ICON, MENU_ITEM_RGB, &mainMenu);
+    });
     if (!currentMenu) currentMenu = &mainMenu;
     currentMenu->selected = 0;
     mainMenu.build();
     subghzMenu.build();
     gamesMenu.build();
+    settingsMenu.build();
     radioTransmitMenu.build();
 }
 
