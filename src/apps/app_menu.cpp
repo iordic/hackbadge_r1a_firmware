@@ -9,6 +9,7 @@
 extern App app_splash;
 extern App app_snake;
 extern App app_jammer;
+extern App app_wifi_beacon_spam;
 
 Menu mainMenu;
 // Submenus
@@ -64,6 +65,14 @@ void menu_onStart() {
         addMenuNode(&settingsMenu, &RADIO_ICON, MENU_ITEM_RADIO, &mainMenu);
         addMenuNode(&settingsMenu, &RGB_ICON, MENU_ITEM_RGB, &mainMenu);
     });
+    // BLE submenu
+    createMenu(&bleMenu, &mainMenu, []() {
+        addMenuNode(&bleMenu, &FORBIDDEN_ICON, MENU_ITEM_NOT_IMPLEMENTED, &mainMenu);
+    });
+    // WiFi submenu
+    createMenu(&wifiMenu, &mainMenu, []() {
+        addMenuNode(&wifiMenu, &SPAM_ICON, MENU_ITEM_WIFI_BEACON_SPAM, &mainMenu, &app_wifi_beacon_spam);
+    });
     if (!currentMenu) currentMenu = &mainMenu;
     currentMenu->selected = 0;
     mainMenu.build();
@@ -71,6 +80,8 @@ void menu_onStart() {
     gamesMenu.build();
     settingsMenu.build();
     radioTransmitMenu.build();
+    bleMenu.build();
+    wifiMenu.build();
 }
 
 void menu_onStop() {}
