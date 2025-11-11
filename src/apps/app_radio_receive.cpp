@@ -10,9 +10,10 @@
 extern App app_menu;
 QueueHandle_t queue;
 TaskHandle_t radioReceiverTaskHandle = NULL;
-bool firstMessage = true;
+bool firstMessage;
 
 void radio_receive_onStart() {
+    firstMessage = true;
     RadioTaskParams *params = (RadioTaskParams *) malloc(sizeof(RadioTaskParams));
     params->operation = RECEIVE_SIGNAL;
     params->frequency = FREQ_433MHZ;
