@@ -2,13 +2,14 @@
 #define RADIO_TASK_H_
 #include <Arduino.h>
 #include <ELECHOUSE_CC1101.h>
+#include <RCSwitch.h>
+#include "utils/rcswitch_decoder.h"
 
 enum RadioOperation {
   CHECK = 0,
   START_JAMMER,
-  STOP_JAMMER,
-  TX_MODE,
-  RX_MODE
+  RECEIVE_SIGNAL,
+  RADIO_STOP
 };
 
 enum AvailableFrequencies {
@@ -30,10 +31,18 @@ typedef struct {
   int frequency;
   int preset;
   TaskHandle_t callerHandle;  // para avisar a quien devolver el resultado
+  QueueHandle_t queueHandle;
 } RadioTaskParams;
+
+typedef struct {
+  unsigned long value;
+  unsigned int length;
+  unsigned int protocol;
+} RFMessage;
 
 void radio_task(void *pv);
 void loadConfiguration(int frequencyOption, int preset);
 float getFrequencyFromEnum(int freqEnum);
 void lockJamming();
+void radioReceiveSignal();
 #endif

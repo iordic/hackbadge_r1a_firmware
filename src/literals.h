@@ -15,6 +15,7 @@ const uint16_t MEGAPHONE_ICON PROGMEM = 0x0069;
 const uint16_t RGB_ICON PROGMEM = 0x0047;
 const uint16_t RADIO_ICON PROGMEM = 0x0054;
 const uint16_t SPAM_ICON PROGMEM = 0x009d;
+//const uint16_t RECORD_ICON PROGMEM = 0x00d4;
 const uint16_t FORBIDDEN_ICON PROGMEM = 0x0057;
 
 // Menu item labels

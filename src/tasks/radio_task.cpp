@@ -3,30 +3,35 @@
 #include "config/cc1101_config.h"
 #include "radio.h"
 
-
 ELECHOUSE_CC1101 *cc1101;
-
+BaseType_t xRadioResult;
+uint32_t radioNotificationValue;
+QueueHandle_t radioQueue;
 
 void radio_task(void *pv) {
     cc1101 = radio_get();
     RadioTaskParams *params = (RadioTaskParams *) pv;
     TaskHandle_t caller = params->callerHandle;   
+    radioQueue = params->queueHandle;
     cc1101->init();
     switch (params->operation) {
     case CHECK:
         xTaskNotify(caller, cc1101->getCC1101(), eSetValueWithOverwrite);
         break;
     case START_JAMMER:
-        Serial.print("freq preset: ");
-        Serial.println(params->frequency);
         loadConfiguration(params->frequency, params->preset);
         cc1101->setTx();
-        Serial.println(cc1101->getFrequency());
         lockJamming();
+        break;
+    case RECEIVE_SIGNAL:
+        loadConfiguration(params->frequency, params->preset);
+        cc1101->setRx();
+        radioReceiveSignal();
         break;
     default:
         break;
     }  
+    cc1101->setSidle();
     free(params);
     vTaskDelete(NULL);
 }
@@ -87,10 +92,29 @@ float getFrequencyFromEnum(int freqEnum) {
 
 void lockJamming() {
     digitalWrite(CC1101_GDO0, HIGH);
-    uint32_t keepJamming;   // dummy variable to receive notification value
     Serial.println("Jamming started.");
-    xTaskNotifyWait(0, 0, &keepJamming, portMAX_DELAY);
+    xTaskNotifyWait(0, 0, &radioNotificationValue, portMAX_DELAY);
     digitalWrite(CC1101_GDO0, LOW);
-    cc1101->setSidle();
     Serial.println("Jamming stopped.");
+}
+
+void radioReceiveSignal() {
+    RFMessage msg;
+    RCSwitch mySwitch = RCSwitch();
+    mySwitch.enableReceive(CC1101_GDO0);
+    Serial.print("Radio receiver started. Listening on ");
+    Serial.println(cc1101->getFrequency());
+    while (true) {
+        if (mySwitch.available()) {
+            output(mySwitch.getReceivedValue(), mySwitch.getReceivedBitlength(), mySwitch.getReceivedDelay(), mySwitch.getReceivedRawdata(),mySwitch.getReceivedProtocol());
+            msg.value = mySwitch.getReceivedValue();
+            msg.length = mySwitch.getReceivedBitlength();
+            msg.protocol = mySwitch.getReceivedProtocol();
+            xQueueSend(radioQueue, &msg, 0);
+            mySwitch.resetAvailable();
+        }
+        xRadioResult = xTaskNotifyWait(0, 0, &radioNotificationValue, 0);
+        if (xRadioResult == pdTRUE && radioNotificationValue == RADIO_STOP)  break;
+        vTaskDelay(10 / portTICK_PERIOD_MS);
+    }
 }

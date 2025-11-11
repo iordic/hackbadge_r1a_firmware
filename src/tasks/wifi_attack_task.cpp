@@ -6,14 +6,14 @@ const uint8_t channels[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}; // used Wi-Fi ch
 uint8_t channelIndex = 0;
 uint8_t wifi_channel = 1;
 
-uint32_t notificationValue;
-BaseType_t xResult;
+uint32_t notificationWifiValue;
+BaseType_t xWifiResult;
 
 void wifi_attack_task(void *pv) {
     while (1) {
         beaconAttack();
-        xResult = xTaskNotifyWait(0, 0, &notificationValue, 0);
-        if (xResult == pdTRUE && notificationValue == STOP_ATTACK)  break; // Check the variable without changing it
+        xWifiResult = xTaskNotifyWait(0, 0, &notificationWifiValue, 0);
+        if (xWifiResult == pdTRUE && notificationWifiValue == STOP_ATTACK)  break; // Check the variable without changing it
     }
     //free(params); // no params to free here
     vTaskDelete(NULL);

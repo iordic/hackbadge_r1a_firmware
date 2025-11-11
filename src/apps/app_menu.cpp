@@ -9,6 +9,7 @@
 extern App app_splash;
 extern App app_snake;
 extern App app_jammer;
+extern App app_radio_receive;
 extern App app_wifi_beacon_spam;
 
 Menu mainMenu;
@@ -51,7 +52,7 @@ void menu_onStart() {
         xTaskNotifyWait(0, 0, &availableRadio, portMAX_DELAY);
         if (availableRadio) {
             addMenuNode(&subghzMenu, &UP_ICON, MENU_ITEM_TRANSMIT, &radioTransmitMenu);
-            addMenuNode(&subghzMenu, &DOWN_ICON, MENU_ITEM_RECEIVE, &mainMenu);
+            addMenuNode(&subghzMenu, &DOWN_ICON, MENU_ITEM_RECEIVE, &mainMenu, &app_radio_receive);
         } else {
             addMenuNode(&subghzMenu, &ERROR_ICON, MENU_ITEM_RADIO_NOT_FOUND, &mainMenu);
         }
