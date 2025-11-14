@@ -8,7 +8,7 @@
 #define SCREEN_ADDRESS 0x3c // default value should be 0x3c
 #define SCREEN_WIDTH   128
 #define SCREEN_HEIGHT  64
-#define NUM_LEDS 2
+#define NUM_LEDS 4
 
 /* I/O */
 #ifdef ESP32_C3_SUPERMINI_CUSTOM

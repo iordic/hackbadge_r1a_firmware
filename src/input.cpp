@@ -31,11 +31,11 @@ int input_read() {
 
 void input_init() {
     // Buttons setup
-    leftBtn.setup(BUTTON_LEFT, INPUT_PULLUP, true);
-    upBtn.setup(BUTTON_UP, INPUT_PULLUP, true);
-    rightBtn.setup(BUTTON_RIGHT, INPUT_PULLUP, true);
-    downBtn.setup(BUTTON_DOWN, INPUT_PULLUP, true);
-    enterBtn.setup(BUTTON_ENTER, INPUT_PULLUP, true);
+    leftBtn.setup(BUTTON_LEFT, INPUT, true);
+    upBtn.setup(BUTTON_UP, INPUT, true);
+    rightBtn.setup(BUTTON_RIGHT, INPUT, true);
+    downBtn.setup(BUTTON_DOWN, INPUT, true);
+    enterBtn.setup(BUTTON_ENTER, INPUT, true);
     // attach callbacks
     leftBtn.attachClick(handleLeft);
     rightBtn.attachClick(handleRight);
