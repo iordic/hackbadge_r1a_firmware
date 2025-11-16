@@ -90,6 +90,22 @@ float getFrequencyFromEnum(int freqEnum) {
     }
 }
 
+String getPresetNameFromEnum(int presetEnum) {
+    switch (presetEnum) {
+    case PRESET_AM270:
+        return "AM270";
+    case PRESET_AM650:
+        return "AM650";
+    case PRESET_FM238:
+        return "FM238";
+    case PRESET_FM476:
+        return "FM476";
+    default:
+        return "";
+    }
+
+}
+
 void lockJamming() {
     digitalWrite(CC1101_GDO0, HIGH);
     Serial.println("Jamming started.");

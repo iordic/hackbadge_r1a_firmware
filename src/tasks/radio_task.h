@@ -43,6 +43,7 @@ typedef struct {
 void radio_task(void *pv);
 void loadConfiguration(int frequencyOption, int preset);
 float getFrequencyFromEnum(int freqEnum);
+String getPresetNameFromEnum(int presetEnum);
 void lockJamming();
 void radioReceiveSignal();
 #endif

@@ -8,7 +8,9 @@ Custom firmware for the Hackbat badge ([hackbadge_r1a](https://github.com/thebad
 - The Snake game is adapted from [johnpathe/arduinoSnake](https://github.com/johnpathe/arduinoSnake).  
 - Graphic animations were implemented using classes from [L33t-dot-UK/U8g2_Tutorials](https://github.com/L33t-dot-UK/U8g2_Tutorials).  
 - The CC1101 driver library is a personal modification of [LSatan/SmartRC-CC1101-Driver-Lib](https://github.com/LSatan/SmartRC-CC1101-Driver-Lib).
-- WiFi attacks are adapted from [pr3y/Bruce](https://github.com/pr3y/Bruce).
+- Adapted from the firmware [pr3y/Bruce](https://github.com/pr3y/Bruce):
+    - WiFi attacks
+
 ---
 
 **Licenses**  
