@@ -2,18 +2,27 @@
 #define MENU_UTILS_H_
 
 
+struct MenuNodeValue {
+    int8_t min;
+    int8_t current;
+    int8_t max;
+};
+
 /* Copied & adapted from esp8266_deauther licensed under MIT */
 struct MenuNode {
-    std::function<uint16_t()>getIcon; 
-    std::function<String()>getStr; // function used to create the displayed string
-    std::function<void()>    click;  // function that is executed when node is clicked
-    std::function<void()>    hold;   // function that is executed when node is pressed for > 800ms
+    std::function<uint16_t()> getIcon; 
+    std::function<String()> getStr; // function used to create the displayed string
+    std::function<void()> click;  // function that is executed when node is clicked
+    std::function<void()> hold;   // function that is executed when node is pressed for > 800ms
+    std::function<void()> left;
+    std::function<void()> right;
+    MenuNodeValue* value;
 };
 
 struct Menu {
     SimpleList<MenuNode>* list;
     Menu                * parentMenu;
-    int8_t               selected;
+    int8_t                selected;
     std::function<void()> build; // function that is executed when button is clicked
 };
 

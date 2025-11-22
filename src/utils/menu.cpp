@@ -21,12 +21,12 @@ void createMenu(Menu* menu, Menu* parent, std::function<void()>build) {
 
 void addMenuNode(Menu* menu, std::function<String()>getStr, std::function<void()>click,
                             std::function<void()>hold) {
-    menu->list->add(MenuNode{ NULL, getStr, click, hold });
+    menu->list->add(MenuNode{ NULL, getStr, click, hold, NULL, NULL, NULL });
 }
 
 void addMenuNode(Menu* menu, std::function<uint16_t()>getIcon, std::function<String()>getStr, 
                 std::function<void()>click, std::function<void()>hold) {
-    menu->list->add(MenuNode{ getIcon, getStr, click, hold });
+    menu->list->add(MenuNode{ getIcon, getStr, click, hold, NULL, NULL, NULL });
 }
 
 

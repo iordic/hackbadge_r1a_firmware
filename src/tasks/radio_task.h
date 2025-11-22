@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <ELECHOUSE_CC1101.h>
 #include <RCSwitch.h>
+#include <Preferences.h>
 #include "utils/rcswitch_decoder.h"
 
 enum RadioOperation {
