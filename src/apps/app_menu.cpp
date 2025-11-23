@@ -31,16 +31,18 @@ extern Menu* currentMenu;
 
 int row;
 Preferences prefs;
-uint8_t frequencySelectedConfig;
-uint8_t radioPresetConfig;
+SettingsValue frequencySelectedConfig;
+SettingsValue radioPresetConfig;
 uint32_t availableRadio = 0;
 
 void menu_onStart() {
     row = 0;
     prefs.begin("configuration");
     // Default config if not saved values: 433MHz - OOK - 650Khz bw
-    frequencySelectedConfig = prefs.getInt("frequency", FREQ_433MHZ);
-    radioPresetConfig = prefs.getInt("preset", PRESET_AM650);
+    frequencySelectedConfig.current = prefs.getInt("frequency", FREQ_433MHZ);
+    radioPresetConfig.current = prefs.getInt("preset", PRESET_AM650);
+    frequencySelectedConfig.max = FREQ_915MHZ;
+    radioPresetConfig.max = PRESET_FM476;
     // Main menu
     createMenu(&mainMenu, NULL, []() {
         addMenuNode(&mainMenu, &WAVE_ICON, MENU_ITEM_SUBGHZ, &app_splash, &subghzMenu);
@@ -78,6 +80,7 @@ void menu_onStart() {
     });
     // Radio settings submenu
     createMenu(&radioSettingsMenu, &settingsMenu, []() {
+        addMenuNodeSetting(&radioSettingsMenu, "Freq < %.2f >", &frequencySelectedConfig,  &settingsMenu);
         addMenuNode(&radioSettingsMenu,  NULL, "Freq.    < 433.92>", &settingsMenu);
         addMenuNode(&radioSettingsMenu,  NULL, "Preset   < AM650 >", &settingsMenu);
         addMenuNode(&radioSettingsMenu, "Apply changes", [](){showPopupMenu("Saved!");});
@@ -116,7 +119,12 @@ void menu_onEvent(int evt) {
         currentMenu->selected--;
     } else if (evt == BTN_DOWN) {
         currentMenu->selected++;
+    } else if (evt == BTN_LEFT) {
+        currentMenu->list->get(currentMenu->selected).left();
+    } else if (evt == BTN_RIGHT) {
+        currentMenu->list->get(currentMenu->selected).right();
     }
+    
 }
 
 void menu_onDraw(U8G2 *u8g2) {

@@ -3,6 +3,7 @@
 #include <SimpleList.h>
 #include "app.h"
 #include "menu.h"
+#include "utils/radio_utils.h"
 
 Menu* currentMenu;
 
@@ -21,12 +22,12 @@ void createMenu(Menu* menu, Menu* parent, std::function<void()>build) {
 
 void addMenuNode(Menu* menu, std::function<String()>getStr, std::function<void()>click,
                             std::function<void()>hold) {
-    menu->list->add(MenuNode{ []() -> uint16_t {return 0;}, getStr, click, hold, NULL, NULL, NULL });
+    menu->list->add(MenuNode{ []() -> uint16_t {return 0;}, getStr, click, hold, [](){}, [](){} });
 }
 
 void addMenuNode(Menu* menu, std::function<uint16_t()>getIcon, std::function<String()>getStr, 
                 std::function<void()>click, std::function<void()>hold) {
-    menu->list->add(MenuNode{ getIcon, getStr, click, hold, NULL, NULL, NULL });
+    menu->list->add(MenuNode{ getIcon, getStr, click, hold, [](){}, [](){} });
 }
 
 
@@ -35,7 +36,7 @@ void addMenuNode(Menu* menu, std::function<uint16_t()>getIcon, std::function<Str
 }
 
 void addMenuNode(Menu* menu, std::function<String()>getStr, std::function<void()>click) {
-    addMenuNode(menu, getStr, click, NULL);
+    addMenuNode(menu, getStr, click, [menu]() {changeMenu(menu->parentMenu);});
 }
 
 void addMenuNode(Menu* menu, std::function<String()>getStr, Menu* next) {
@@ -86,7 +87,16 @@ void addMenuNode(Menu* menu, const uint16_t *icon, const char* ptr, Menu* back, 
     });
 }
 
-void addMenuNodeSetting(Menu* menu, const char* ptr, uint8_t* value, uint8_t maxValue, std::function<void()>left, std::function<void()>right, Menu* back) {
-    MenuNodeValue menuNodeValue = MenuNodeValue{value, maxValue};
-    menu->list->add(MenuNode{ NULL, [ptr, menuNodeValue, maxValue]() {return "";}, NULL, [back]() {changeMenu(back);}, left, right, &menuNodeValue });
+void addMenuNodeSetting(Menu* menu, const char* ptr, SettingsValue* value, Menu* back) {
+    menu->list->add(MenuNode{ []() -> uint16_t {return 0;}, 
+        [ptr, value]() {
+            char buf[18];
+            snprintf(buf, 18, ptr, getFrequencyFromEnum(value->current));
+            return String(buf);
+        },
+        [](){},
+        [back]() {changeMenu(back);}, 
+        [value](){ value->current =  value->current == 0 ? 0 : value->current-1;}, 
+        [value](){ value->current = value->current == value->max ? value->max : value->current+1;}}
+    );
 }

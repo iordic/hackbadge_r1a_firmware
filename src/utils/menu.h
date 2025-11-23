@@ -2,8 +2,8 @@
 #define MENU_UTILS_H_
 
 
-struct MenuNodeValue {
-    uint8_t* current;
+struct SettingsValue {
+    uint8_t current;
     uint8_t max;
 };
 
@@ -15,7 +15,6 @@ struct MenuNode {
     std::function<void()> hold;   // function that is executed when node is pressed for > 800ms
     std::function<void()> left;
     std::function<void()> right;
-    MenuNodeValue* value;
 };
 
 struct Menu {
@@ -38,5 +37,5 @@ void addMenuNode(Menu* menu, const char* ptr, Menu* next);
 void addMenuNode(Menu* menu, const uint16_t *icon, const char* ptr, Menu* next);
 void addMenuNode(Menu* menu, const uint16_t *icon, const char* ptr, App* back, Menu* next);
 void addMenuNode(Menu* menu, const uint16_t *icon, const char* ptr, Menu* back, App* next);
-void addMenuNodeSetting(Menu* menu, const char* ptr, uint8_t* value, uint8_t maxValue, std::function<void()>left, std::function<void()>right, Menu* back);
+void addMenuNodeSetting(Menu* menu, const char* ptr, SettingsValue* value, Menu* back);
 #endif
