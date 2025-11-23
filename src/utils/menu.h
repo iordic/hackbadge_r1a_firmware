@@ -3,9 +3,8 @@
 
 
 struct MenuNodeValue {
-    int8_t min;
-    int8_t current;
-    int8_t max;
+    uint8_t* current;
+    uint8_t max;
 };
 
 /* Copied & adapted from esp8266_deauther licensed under MIT */
@@ -39,4 +38,5 @@ void addMenuNode(Menu* menu, const char* ptr, Menu* next);
 void addMenuNode(Menu* menu, const uint16_t *icon, const char* ptr, Menu* next);
 void addMenuNode(Menu* menu, const uint16_t *icon, const char* ptr, App* back, Menu* next);
 void addMenuNode(Menu* menu, const uint16_t *icon, const char* ptr, Menu* back, App* next);
+void addMenuNodeSetting(Menu* menu, const char* ptr, uint8_t* value, uint8_t maxValue, std::function<void()>left, std::function<void()>right, Menu* back);
 #endif

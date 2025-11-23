@@ -1,11 +1,12 @@
 #include "literals.h"
 #include "app.h"
 #include "app_jammer.h"
-#include "display.h"
+#include "devices/display.h"
 #include "app_menu.h"
 
 #include "tasks/radio_task.h"
 #include "utils/menu.h"
+#include "utils/radio_utils.h"
 
 extern App app_menu;
 TaskHandle_t jammerTaskHandle = NULL;

@@ -1,10 +1,11 @@
 #include "literals.h"
 #include "app.h"
-#include "display.h"
+#include "devices/display.h"
 #include "app_menu.h"
 
 #include "tasks/radio_task.h"
 #include "utils/menu.h"
+#include "utils/radio_utils.h"
 
 extern App app_splash;
 extern App app_snake;
@@ -22,15 +23,24 @@ Menu settingsMenu;
 // Subghz submenus
 Menu radioTransmitMenu;
 Menu radioReceiveMenu;
+// settings submenus
+Menu radioSettingsMenu;
+Menu neopixelSettingsMenu;
 
 extern Menu* currentMenu;
 
 int row;
-int frequencySelected = FREQ_433MHZ, presetSelected = PRESET_AM650;
+Preferences prefs;
+uint8_t frequencySelectedConfig;
+uint8_t radioPresetConfig;
 uint32_t availableRadio = 0;
 
 void menu_onStart() {
     row = 0;
+    prefs.begin("configuration");
+    // Default config if not saved values: 433MHz - OOK - 650Khz bw
+    frequencySelectedConfig = prefs.getInt("frequency", FREQ_433MHZ);
+    radioPresetConfig = prefs.getInt("preset", PRESET_AM650);
     // Main menu
     createMenu(&mainMenu, NULL, []() {
         addMenuNode(&mainMenu, &WAVE_ICON, MENU_ITEM_SUBGHZ, &app_splash, &subghzMenu);
@@ -63,8 +73,14 @@ void menu_onStart() {
     });
     // Settings submenu
     createMenu(&settingsMenu, &mainMenu, []() {
-        addMenuNode(&settingsMenu, &RADIO_ICON, MENU_ITEM_RADIO, &mainMenu);
+        addMenuNode(&settingsMenu, &RADIO_ICON, MENU_ITEM_RADIO, &radioSettingsMenu);
         addMenuNode(&settingsMenu, &RGB_ICON, MENU_ITEM_RGB, &mainMenu);
+    });
+    // Radio settings submenu
+    createMenu(&radioSettingsMenu, &settingsMenu, []() {
+        addMenuNode(&radioSettingsMenu,  NULL, "Freq.    < 433.92>", &settingsMenu);
+        addMenuNode(&radioSettingsMenu,  NULL, "Preset   < AM650 >", &settingsMenu);
+        addMenuNode(&radioSettingsMenu, "Apply changes", [](){showPopupMenu("Saved!");});
     });
     // BLE submenu
     createMenu(&bleMenu, &mainMenu, []() {
@@ -74,6 +90,7 @@ void menu_onStart() {
     createMenu(&wifiMenu, &mainMenu, []() {
         addMenuNode(&wifiMenu, &SPAM_ICON, MENU_ITEM_WIFI_BEACON_SPAM, &mainMenu, &app_wifi_beacon_spam);
     });
+
     if (!currentMenu) currentMenu = &mainMenu;
     currentMenu->selected = 0;
     mainMenu.build();
@@ -83,9 +100,12 @@ void menu_onStart() {
     radioTransmitMenu.build();
     bleMenu.build();
     wifiMenu.build();
+    radioSettingsMenu.build();
 }
 
-void menu_onStop() {}
+void menu_onStop() {
+    prefs.end();
+}
 
 void menu_onEvent(int evt) {
     if (evt == BTN_BACK) {
@@ -100,6 +120,7 @@ void menu_onEvent(int evt) {
 }
 
 void menu_onDraw(U8G2 *u8g2) {
+    uint8_t xStartWritting = 0;
     u8g2->clearBuffer();
     const int visibleCount = 4;  // número de líneas visibles en pantalla
     String tmp;
@@ -134,16 +155,35 @@ void menu_onDraw(U8G2 *u8g2) {
     }
     // --- Dibujar los ítems visibles ---
     for (int i = row; i < total && i < row + visibleCount; i++) {
+        xStartWritting = 2;
         int drawColor = currentMenu->selected == i ? 1 : 0;
         u8g2->setDrawColor(drawColor);
         u8g2->drawBox(0, (i - row) * 16, 128, 16);
         u8g2->setDrawColor(!drawColor);
-        u8g2->setFont(u8g2_font_open_iconic_all_2x_t);
-        u8g2->drawGlyph(2, (i - row + 1) * 16, currentMenu->list->get(i).getIcon());
-        u8g2->setFont(u8g2_font_7x14_tr);
-        u8g2->drawStr(21, (i - row + 1) * 16 - 2, currentMenu->list->get(i).getStr().c_str());
+        if (currentMenu->list->get(i).getIcon()) {
+            u8g2->setFont(u8g2_font_open_iconic_all_2x_t);
+            u8g2->drawGlyph(xStartWritting, (i - row + 1) * 16, currentMenu->list->get(i).getIcon());
+            xStartWritting = 21;
+        }
+        u8g2->setFont(u8g2_font_7x14_mr);
+        u8g2->drawStr(xStartWritting, (i - row + 1) * 16 - 2, currentMenu->list->get(i).getStr().c_str());
     }
     u8g2->sendBuffer();
+}
+
+void showPopupMenu(const char* message) {
+    U8G2 *u8g2 = display_get();
+    u8g2->setDrawColor(0);
+    u8g2->drawRBox(10, 10, 110, 40, 2);
+    u8g2->setDrawColor(1);
+    u8g2->drawRFrame(12, 12, 106, 36, 2);
+    u8g2->drawRFrame(10, 10, 110, 40, 5);
+    u8g2->setFont(u8g2_font_7x14_mr);
+    int16_t strWidth = u8g2->getStrWidth(message);
+    //u8g2->drawBox((128 - strWidth - 12) / 2, 12, strWidth + 12, 30);
+    u8g2->drawStr((128 - strWidth) / 2, 36, message);
+    u8g2->sendBuffer();
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
 }
 
 App app_menu = {

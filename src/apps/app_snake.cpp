@@ -1,5 +1,5 @@
 /* Taken & adapted from: https://github.com/johnpathe/arduinoSnake */
-#include "display.h"
+#include "devices/display.h"
 #include "app.h"
 #include "app_menu.h"
 #include "app_snake.h"

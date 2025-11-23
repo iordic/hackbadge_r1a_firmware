@@ -5,4 +5,5 @@
 #include <functional>
 #include <SimpleList.h>
 
+void showPopupMenu(const char* message);
 #endif

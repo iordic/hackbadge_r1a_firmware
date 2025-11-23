@@ -21,7 +21,7 @@ void createMenu(Menu* menu, Menu* parent, std::function<void()>build) {
 
 void addMenuNode(Menu* menu, std::function<String()>getStr, std::function<void()>click,
                             std::function<void()>hold) {
-    menu->list->add(MenuNode{ NULL, getStr, click, hold, NULL, NULL, NULL });
+    menu->list->add(MenuNode{ []() -> uint16_t {return 0;}, getStr, click, hold, NULL, NULL, NULL });
 }
 
 void addMenuNode(Menu* menu, std::function<uint16_t()>getIcon, std::function<String()>getStr, 
@@ -61,11 +61,11 @@ void addMenuNode(Menu* menu, const char* ptr, Menu* next) {
 }
 
 void addMenuNode(Menu* menu, const uint16_t *icon, const char* ptr, Menu* next) {
-    addMenuNode(menu, [icon]() -> uint16_t {return *icon;}, [ptr]() {return String(ptr);}, next);
+    addMenuNode(menu, [icon]() -> uint16_t {return icon ? *icon : 0;}, [ptr]() {return String(ptr);}, next);
 }
 
 void addMenuNode(Menu* menu, const uint16_t *icon, const char* ptr, App* back, Menu* next) {
-    addMenuNode(menu, [icon]() -> uint16_t {return *icon;}, [ptr]() {return String(ptr);}, 
+    addMenuNode(menu, [icon]() -> uint16_t {return icon ? *icon : 0;}, [ptr]() {return String(ptr);}, 
     [next]() {
         changeMenu(next);
     },
@@ -77,11 +77,16 @@ void addMenuNode(Menu* menu, const uint16_t *icon, const char* ptr, App* back, M
 }
 
 void addMenuNode(Menu* menu, const uint16_t *icon, const char* ptr, Menu* back, App* next) {
-    addMenuNode(menu, [icon]() -> uint16_t {return *icon;}, [ptr]() {return String(ptr);}, [next]() {
+    addMenuNode(menu, [icon]() -> uint16_t {return icon ? *icon : 0;}, [ptr]() {return String(ptr);}, [next]() {
         extern App *currentApp;
         currentApp = next;
         currentApp->onStart();
     }, [back]() {
         changeMenu(back);
     });
+}
+
+void addMenuNodeSetting(Menu* menu, const char* ptr, uint8_t* value, uint8_t maxValue, std::function<void()>left, std::function<void()>right, Menu* back) {
+    MenuNodeValue menuNodeValue = MenuNodeValue{value, maxValue};
+    menu->list->add(MenuNode{ NULL, [ptr, menuNodeValue, maxValue]() {return "";}, NULL, [back]() {changeMenu(back);}, left, right, &menuNodeValue });
 }

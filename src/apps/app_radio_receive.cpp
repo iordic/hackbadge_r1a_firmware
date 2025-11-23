@@ -5,7 +5,8 @@
 #include "app_menu.h"
 
 #include "tasks/radio_task.h"
-#include "display.h"
+#include "devices/display.h"
+#include "utils/radio_utils.h"
 
 extern App app_menu;
 QueueHandle_t queue;

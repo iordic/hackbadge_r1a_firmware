@@ -1,8 +1,8 @@
 #ifndef UI_TASK_H_
 #define UI_TASK_H_
 #include "app.h"
-#include "input.h"
-#include "display.h"
+#include "devices/input.h"
+#include "devices/display.h"
 #include "tasks/radio_task.h"
 #include <Arduino.h>
 
