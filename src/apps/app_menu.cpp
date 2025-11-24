@@ -37,10 +37,10 @@ uint32_t availableRadio = 0;
 
 void menu_onStart() {
     row = 0;
-    prefs.begin("configuration");
+    prefs.begin("configuration", false);
     // Default config if not saved values: 433MHz - OOK - 650Khz bw
-    frequencySelectedConfig.current = prefs.getInt("frequency", FREQ_433MHZ);
-    radioPresetConfig.current = prefs.getInt("preset", PRESET_AM650);
+    frequencySelectedConfig.current = prefs.getUChar("frequency", FREQ_433MHZ);
+    radioPresetConfig.current = prefs.getUChar("preset", PRESET_AM650);
     frequencySelectedConfig.max = FREQ_915MHZ;
     radioPresetConfig.max = PRESET_FM476;
     // Main menu
@@ -194,8 +194,8 @@ void showPopupMenu(const char* message) {
 
 void saveConfig() {
     int ok = 0;
-    ok |= prefs.putUChar("frequency", frequencySelectedConfig.current);
-    ok |= prefs.putUChar("preset", radioPresetConfig.current);
+    ok += prefs.putUChar("frequency", frequencySelectedConfig.current);
+    ok += prefs.putUChar("preset", radioPresetConfig.current);
     if (ok >= 2) showPopupMenu("Saved!");
     else showPopupMenu("Failed.");
     vTaskDelay(1000 / portTICK_PERIOD_MS);
