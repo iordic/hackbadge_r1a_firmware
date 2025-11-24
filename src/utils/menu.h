@@ -37,5 +37,5 @@ void addMenuNode(Menu* menu, const char* ptr, Menu* next);
 void addMenuNode(Menu* menu, const uint16_t *icon, const char* ptr, Menu* next);
 void addMenuNode(Menu* menu, const uint16_t *icon, const char* ptr, App* back, Menu* next);
 void addMenuNode(Menu* menu, const uint16_t *icon, const char* ptr, Menu* back, App* next);
-void addMenuNodeSetting(Menu* menu, const char* ptr, SettingsValue* value, Menu* back);
+void addMenuNodeSetting(Menu* menu, const char* ptr, SettingsValue* value, std::function<String(uint8_t)>conversionFromEnum, Menu* back);
 #endif

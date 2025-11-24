@@ -3,7 +3,6 @@
 #include <SimpleList.h>
 #include "app.h"
 #include "menu.h"
-#include "utils/radio_utils.h"
 
 Menu* currentMenu;
 
@@ -87,12 +86,10 @@ void addMenuNode(Menu* menu, const uint16_t *icon, const char* ptr, Menu* back, 
     });
 }
 
-void addMenuNodeSetting(Menu* menu, const char* ptr, SettingsValue* value, Menu* back) {
+void addMenuNodeSetting(Menu* menu, const char* ptr, SettingsValue* value, std::function<String(uint8_t)>conversionFromEnum, Menu* back) {
     menu->list->add(MenuNode{ []() -> uint16_t {return 0;}, 
-        [ptr, value]() {
-            char buf[18];
-            snprintf(buf, 18, ptr, getFrequencyFromEnum(value->current));
-            return String(buf);
+        [ptr, value, conversionFromEnum]() {
+            return String(ptr) + (value->current == 0 ? "  " : "< ") + conversionFromEnum(value->current) + (value->current == value->max ? "  " : " >");
         },
         [](){},
         [back]() {changeMenu(back);}, 

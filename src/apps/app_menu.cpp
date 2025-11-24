@@ -80,10 +80,9 @@ void menu_onStart() {
     });
     // Radio settings submenu
     createMenu(&radioSettingsMenu, &settingsMenu, []() {
-        addMenuNodeSetting(&radioSettingsMenu, "Freq < %.2f >", &frequencySelectedConfig,  &settingsMenu);
-        addMenuNode(&radioSettingsMenu,  NULL, "Freq.    < 433.92>", &settingsMenu);
-        addMenuNode(&radioSettingsMenu,  NULL, "Preset   < AM650 >", &settingsMenu);
-        addMenuNode(&radioSettingsMenu, "Apply changes", [](){showPopupMenu("Saved!");});
+        addMenuNodeSetting(&radioSettingsMenu, "Freq ", &frequencySelectedConfig, [](uint8_t value){ return String(getFrequencyFromEnum(value));}, &settingsMenu);
+        addMenuNodeSetting(&radioSettingsMenu, "Preset ", &radioPresetConfig, [](uint8_t value){ return getPresetNameFromEnum(value);}, &settingsMenu);
+        addMenuNode(&radioSettingsMenu, "Apply changes", &saveConfig);
     });
     // BLE submenu
     createMenu(&bleMenu, &mainMenu, []() {
@@ -191,6 +190,14 @@ void showPopupMenu(const char* message) {
     //u8g2->drawBox((128 - strWidth - 12) / 2, 12, strWidth + 12, 30);
     u8g2->drawStr((128 - strWidth) / 2, 36, message);
     u8g2->sendBuffer();
+}
+
+void saveConfig() {
+    int ok = 0;
+    ok |= prefs.putUChar("frequency", frequencySelectedConfig.current);
+    ok |= prefs.putUChar("preset", radioPresetConfig.current);
+    if (ok >= 2) showPopupMenu("Saved!");
+    else showPopupMenu("Failed.");
     vTaskDelay(1000 / portTICK_PERIOD_MS);
 }
 
