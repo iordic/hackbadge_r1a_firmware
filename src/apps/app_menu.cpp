@@ -1,5 +1,6 @@
 #include "literals.h"
 #include "app.h"
+#include "config/io_config.h"
 #include "devices/display.h"
 #include "app_menu.h"
 
@@ -33,6 +34,7 @@ int row;
 Preferences prefs;
 SettingsValue frequencySelectedConfig;
 SettingsValue radioPresetConfig;
+SettingsValue neopixelBrightnessConfig;
 uint32_t availableRadio = 0;
 
 void menu_onStart() {
@@ -41,8 +43,10 @@ void menu_onStart() {
     // Default config if not saved values: 433MHz - OOK - 650Khz bw
     frequencySelectedConfig.current = prefs.getUChar("frequency", FREQ_433MHZ);
     radioPresetConfig.current = prefs.getUChar("preset", PRESET_AM650);
+    neopixelBrightnessConfig.current = prefs.getUChar("brightness", NEOPIXEL_BRIGHTNESS / 10);
     frequencySelectedConfig.max = FREQ_915MHZ;
     radioPresetConfig.max = PRESET_FM476;
+    neopixelBrightnessConfig.max = 10;
     // Main menu
     createMenu(&mainMenu, NULL, []() {
         addMenuNode(&mainMenu, &WAVE_ICON, MENU_ITEM_SUBGHZ, &app_splash, &subghzMenu);
@@ -76,13 +80,18 @@ void menu_onStart() {
     // Settings submenu
     createMenu(&settingsMenu, &mainMenu, []() {
         addMenuNode(&settingsMenu, &RADIO_ICON, MENU_ITEM_RADIO, &radioSettingsMenu);
-        addMenuNode(&settingsMenu, &RGB_ICON, MENU_ITEM_RGB, &mainMenu);
+        addMenuNode(&settingsMenu, &RGB_ICON, MENU_ITEM_RGB, &neopixelSettingsMenu);
     });
     // Radio settings submenu
     createMenu(&radioSettingsMenu, &settingsMenu, []() {
-        addMenuNodeSetting(&radioSettingsMenu, "Freq ", &frequencySelectedConfig, [](uint8_t value){ return String(getFrequencyFromEnum(value));}, &settingsMenu);
-        addMenuNodeSetting(&radioSettingsMenu, "Preset ", &radioPresetConfig, [](uint8_t value){ return getPresetNameFromEnum(value);}, &settingsMenu);
-        addMenuNode(&radioSettingsMenu, "Apply changes", &saveConfig);
+        addMenuNodeSetting(&radioSettingsMenu, "Freq.   ", &frequencySelectedConfig, [](uint8_t value){ return String(getFrequencyFromEnum(value));}, &settingsMenu);
+        addMenuNodeSetting(&radioSettingsMenu, "Preset   ", &radioPresetConfig, [](uint8_t value){ return getPresetNameFromEnum(value);}, &settingsMenu);
+        addMenuNode(&radioSettingsMenu, "Apply changes", &saveRadioConfig);
+    });
+    // Neopixel settings submenu
+    createMenu(&neopixelSettingsMenu, &settingsMenu, []() {
+        addMenuNodeSetting(&neopixelSettingsMenu, "Brightness ", &neopixelBrightnessConfig, [](uint8_t value){ return String(value);}, &settingsMenu);
+        addMenuNode(&neopixelSettingsMenu, "Apply changes", &saveNeopixelConfig);
     });
     // BLE submenu
     createMenu(&bleMenu, &mainMenu, []() {
@@ -103,6 +112,7 @@ void menu_onStart() {
     bleMenu.build();
     wifiMenu.build();
     radioSettingsMenu.build();
+    neopixelSettingsMenu.build();
 }
 
 void menu_onStop() {
@@ -192,11 +202,18 @@ void showPopupMenu(const char* message) {
     u8g2->sendBuffer();
 }
 
-void saveConfig() {
+void saveRadioConfig() {
     int ok = 0;
     ok += prefs.putUChar("frequency", frequencySelectedConfig.current);
     ok += prefs.putUChar("preset", radioPresetConfig.current);
     if (ok >= 2) showPopupMenu("Saved!");
+    else showPopupMenu("Failed.");
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+}
+
+void saveNeopixelConfig() {
+    int ok =  prefs.putUChar("brightness", neopixelBrightnessConfig.current);
+    if (ok) showPopupMenu("Saved!");
     else showPopupMenu("Failed.");
     vTaskDelay(1000 / portTICK_PERIOD_MS);
 }
