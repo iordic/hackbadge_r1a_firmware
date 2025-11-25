@@ -3,28 +3,7 @@
 #include <Arduino.h>
 #include <ELECHOUSE_CC1101.h>
 #include <RCSwitch.h>
-#include "utils/rcswitch_decoder.h"
-
-enum RadioOperation {
-  CHECK = 0,
-  START_JAMMER,
-  RECEIVE_SIGNAL,
-  RADIO_STOP
-};
-
-enum AvailableFrequencies {
-  FREQ_315MHZ = 0,
-  FREQ_433MHZ,
-  FREQ_868MHZ,
-  FREQ_915MHZ
-};
-
-enum PresetConfigs {
-    PRESET_AM270 = 0,
-    PRESET_AM650,
-    PRESET_FM238,
-    PRESET_FM476
-};
+#include <Preferences.h>
 
 typedef struct {
   int operation; 
@@ -42,8 +21,6 @@ typedef struct {
 
 void radio_task(void *pv);
 void loadConfiguration(int frequencyOption, int preset);
-float getFrequencyFromEnum(int freqEnum);
-String getPresetNameFromEnum(int presetEnum);
 void lockJamming();
 void radioReceiveSignal();
 #endif

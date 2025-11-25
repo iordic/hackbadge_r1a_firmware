@@ -5,20 +5,22 @@
 #include "app_menu.h"
 
 #include "tasks/radio_task.h"
-#include "display.h"
+#include "devices/display.h"
+#include "utils/radio_utils.h"
 
 extern App app_menu;
 QueueHandle_t queue;
 TaskHandle_t radioReceiverTaskHandle = NULL;
 bool firstMessage;
 RadioTaskParams *receiverParams;
+extern Preferences prefs;
 
 void radio_receive_onStart() {
     firstMessage = true;
     receiverParams = (RadioTaskParams *) malloc(sizeof(RadioTaskParams));
     receiverParams->operation = RECEIVE_SIGNAL;
-    receiverParams->frequency = FREQ_433MHZ;
-    receiverParams->preset = PRESET_AM650;
+    receiverParams->frequency = prefs.getUChar("frequency", FREQ_433MHZ);
+    receiverParams->preset = prefs.getUChar("preset", PRESET_AM650);
     queue = xQueueCreate(8, sizeof(RFMessage));
     receiverParams->queueHandle = queue;
     receiverParams->callerHandle = xTaskGetCurrentTaskHandle();

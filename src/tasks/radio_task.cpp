@@ -1,7 +1,8 @@
 #include "radio_task.h"
 #include "config/io_config.h"
 #include "config/cc1101_config.h"
-#include "radio.h"
+#include "devices/radio.h"
+#include "utils/radio_utils.h"
 
 ELECHOUSE_CC1101 *cc1101;
 BaseType_t xRadioResult;
@@ -69,41 +70,6 @@ void loadConfiguration(int frequencyOption, int preset) {
     }
     cc1101->spiWriteBurstReg(CC1101_PATABLE, &settings[i+2], patableSize);
     cc1101->setFrequency(frequency);
-}
-
-float getFrequencyFromEnum(int freqEnum) {
-    switch (freqEnum) {
-    case FREQ_315MHZ:
-        return 315.0;
-        break;
-    case FREQ_433MHZ:
-        return 433.92;
-        break;
-    case FREQ_868MHZ:
-        return 868.0;
-        break;
-    case FREQ_915MHZ:
-        return 915.0;
-        break;
-    default:
-        return 433.92;
-    }
-}
-
-String getPresetNameFromEnum(int presetEnum) {
-    switch (presetEnum) {
-    case PRESET_AM270:
-        return "AM270";
-    case PRESET_AM650:
-        return "AM650";
-    case PRESET_FM238:
-        return "FM238";
-    case PRESET_FM476:
-        return "FM476";
-    default:
-        return "";
-    }
-
 }
 
 void lockJamming() {

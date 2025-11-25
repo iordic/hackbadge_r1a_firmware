@@ -1,6 +1,6 @@
 
 #include "app.h"
-#include "display.h"
+#include "devices/display.h"
 #include "app_splash.h"
 
 extern App app_menu;

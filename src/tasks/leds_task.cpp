@@ -2,10 +2,14 @@
 
 Adafruit_NeoPixel strip(NUM_LEDS, NEOPIXEL, NEO_GRB + NEO_KHZ800);
 
+extern Preferences prefs;
+
 void leds_task(void *pv) {
+    prefs.begin("configuration");
     int selected = 0;
     uint32_t color;
-    strip.setBrightness(40);
+    uint8_t brightness = prefs.getUChar("brightness", 5);
+    strip.setBrightness(255 * brightness / 10);
     while (true) {
         /* totalmente aleatorio */
         for (int i = 0; i < NUM_LEDS; i++) strip.setPixelColor(i, strip.Color(random(256), random(256), random(256)));

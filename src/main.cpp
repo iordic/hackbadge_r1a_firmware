@@ -5,7 +5,7 @@
 #include "config/io_config.h"
 #include "tasks/ui_task.h"
 #include "tasks/leds_task.h"
-#include "radio.h"
+#include "devices/radio.h"
 
 
 void setup() {
