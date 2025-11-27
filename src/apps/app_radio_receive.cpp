@@ -4,6 +4,8 @@
 #include "app.h"
 #include "app_menu.h"
 
+#include "tasks/ui_task.h"
+#include "tasks/leds_task.h"
 #include "tasks/radio_task.h"
 #include "devices/display.h"
 #include "utils/radio_utils.h"
@@ -14,6 +16,7 @@ TaskHandle_t radioReceiverTaskHandle = NULL;
 bool firstMessage;
 RadioTaskParams *receiverParams;
 extern Preferences prefs;
+extern uint8_t ledsBrightness;
 
 void radio_receive_onStart() {
     firstMessage = true;
@@ -24,10 +27,13 @@ void radio_receive_onStart() {
     queue = xQueueCreate(8, sizeof(RFMessage));
     receiverParams->queueHandle = queue;
     receiverParams->callerHandle = xTaskGetCurrentTaskHandle();
+    ledsBrightness = prefs.getUChar("brightness");
+    sendNeopixelConfig(NeopixelConfiguration{FIXED_COLOR, ledsBrightness, {0x000000ff,0x000000ff,0x000000ff,0x000000ff}});
     xTaskCreatePinnedToCore(radio_task, "RadioReceiverWorker", 2048, receiverParams, 5, &radioReceiverTaskHandle, 1);
 }
 void radio_receive_onStop() {
     xTaskNotify(radioReceiverTaskHandle, RADIO_STOP, eSetValueWithOverwrite);
+    sendNeopixelConfig(NeopixelConfiguration{RANDOM_ALL, ledsBrightness, {0,0,0}});
 }
 
 void radio_receive_onDraw(U8G2 *u8g2) {

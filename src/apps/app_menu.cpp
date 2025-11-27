@@ -4,7 +4,9 @@
 #include "devices/display.h"
 #include "app_menu.h"
 
+#include "tasks/ui_task.h"
 #include "tasks/radio_task.h"
+#include "tasks/leds_task.h"
 #include "utils/menu.h"
 #include "utils/radio_utils.h"
 
@@ -213,6 +215,7 @@ void saveRadioConfig() {
 
 void saveNeopixelConfig() {
     int ok =  prefs.putUChar("brightness", neopixelBrightnessConfig.current);
+    sendNeopixelConfig(NeopixelConfiguration{RANDOM_ALL, neopixelBrightnessConfig.current, {0,0,0,0}});
     if (ok) showPopupMenu("Saved!");
     else showPopupMenu("Failed.");
     vTaskDelay(1000 / portTICK_PERIOD_MS);

@@ -4,6 +4,8 @@
 #include "devices/display.h"
 #include "app_menu.h"
 
+#include "tasks/ui_task.h"
+#include "tasks/leds_task.h"
 #include "tasks/radio_task.h"
 #include "utils/menu.h"
 #include "utils/radio_utils.h"
@@ -13,6 +15,7 @@ TaskHandle_t jammerTaskHandle = NULL;
 float jammer_frequency;
 int preset;
 extern Preferences prefs;
+extern uint8_t ledsBrightness;
 
 void jammer_onStart() {
   prefs.begin("config", true);
@@ -24,10 +27,13 @@ void jammer_onStart() {
   jammer_frequency = getFrequencyFromEnum(params->frequency);
   preset = params->preset;
   xTaskCreatePinnedToCore(radio_task, "RadioJammerWorker", 2048, params, 1, &jammerTaskHandle, 1);
+  ledsBrightness = prefs.getUChar("brightness");
+  sendNeopixelConfig(NeopixelConfiguration{FIXED_COLOR, ledsBrightness, {0x00ff0000,0x00ff0000,0x00ff0000,0x00ff0000}});
 }
 
 void jammer_onStop() {
   xTaskNotify(jammerTaskHandle, 1, eSetValueWithOverwrite);
+  sendNeopixelConfig(NeopixelConfiguration{RANDOM_ALL, ledsBrightness, {0,0,0}});
   prefs.end();
 }
 
