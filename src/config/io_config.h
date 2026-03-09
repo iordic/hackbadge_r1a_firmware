@@ -12,7 +12,7 @@
 #define NEOPIXEL_BRIGHTNESS 50
 
 /* I/O */
-#ifdef ESP32_C3_SUPERMINI_CUSTOM
+#ifdef ESP32_C3_SUPERMINI_DIY
     /* Strapping GPIOs:
      *   2 -> Must be HIGH during reset, if this pin goes low during reset, either flash execution or UART flashing may not work.
      *   8 -> Must be HIGH during reset, UART flashing may not work if this pin goes low during reset.
@@ -38,10 +38,10 @@
 #ifdef HACKBADGE_R1A
     #define CC1101_SCLK 10
     #define CC1101_MISO  3
-    #define CC1101_MOSI  21 //4
+    #define CC1101_MOSI  4
     #define CC1101_CS   20 
-    #define CC1101_GDO0 4 //21 // -> pin 21 cannot be used as INPUT, so we remap GDO0 to pin 4
-    #define CC1101_GDO2 -1 //21 // we are out of pins, so we must use gdo0 for both, receive and transmit
+    #define CC1101_GDO0  21 // -> pin 21 cannot be used as INPUT, so we remap GDO0 to pin 4
+    #define CC1101_GDO2 -1 // we are out of pins, so we must use gdo0 for both, receive and transmit
     #define I2C_SDA      1
     #define I2C_SCL      0
     #define NEOPIXEL     2
@@ -52,4 +52,5 @@
     #define BUTTON_DOWN  6
     #define BUTTON_ENTER 5
 #endif
+
 #endif

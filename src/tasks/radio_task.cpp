@@ -73,6 +73,7 @@ void loadConfiguration(int frequencyOption, int preset) {
 }
 
 void lockJamming() {
+    pinMode(CC1101_GDO0, OUTPUT);
     digitalWrite(CC1101_GDO0, HIGH);
     Serial.println("Jamming started.");
     xTaskNotifyWait(0, 0, &radioNotificationValue, portMAX_DELAY);
@@ -82,6 +83,7 @@ void lockJamming() {
 
 void radioReceiveSignal() {
     RFMessage msg;
+    pinMode(CC1101_GDO0, INPUT);
     RCSwitch mySwitch = RCSwitch();
     mySwitch.enableReceive(CC1101_GDO0);
     Serial.print("Radio receiver started. Listening on ");
