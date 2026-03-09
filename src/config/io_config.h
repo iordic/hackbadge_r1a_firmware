@@ -40,10 +40,27 @@
     #define CC1101_MISO  3
     #define CC1101_MOSI  4
     #define CC1101_CS   20 
-    #define CC1101_GDO0  21 // -> pin 21 cannot be used as INPUT, so we remap GDO0 to pin 4
+    #define CC1101_GDO0 21
     #define CC1101_GDO2 -1 // we are out of pins, so we must use gdo0 for both, receive and transmit
     #define I2C_SDA      1
     #define I2C_SCL      0
+    #define NEOPIXEL     2
+    // buttons
+    #define BUTTON_LEFT  9
+    #define BUTTON_UP    8
+    #define BUTTON_RIGHT 7
+    #define BUTTON_DOWN  6
+    #define BUTTON_ENTER 5
+#endif
+#ifdef HACKBADGE_R2A
+    #define CC1101_SCLK  3
+    #define CC1101_MISO  1
+    #define CC1101_MOSI 21
+    #define CC1101_CS    4
+    #define CC1101_GDO0  0
+    #define CC1101_GDO2 -1
+    #define I2C_SDA     20 
+    #define I2C_SCL     10
     #define NEOPIXEL     2
     // buttons
     #define BUTTON_LEFT  9
