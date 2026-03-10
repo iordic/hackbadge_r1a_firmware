@@ -3,7 +3,11 @@
 #include <U8g2lib.h>
 #include <Wire.h>
 
+#ifdef USE_SSD1306
+U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0);
+#else
 U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0);
+#endif
 
 void display_init() {
   Wire.begin(I2C_SDA, I2C_SCL);

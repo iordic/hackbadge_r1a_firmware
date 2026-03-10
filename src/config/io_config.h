@@ -13,6 +13,8 @@
 
 /* I/O */
 #ifdef ESP32_C3_SUPERMINI_DIY
+    #define USE_SSD1306
+    #define NUM_LEDS 2
     /* Strapping GPIOs:
      *   2 -> Must be HIGH during reset, if this pin goes low during reset, either flash execution or UART flashing may not work.
      *   8 -> Must be HIGH during reset, UART flashing may not work if this pin goes low during reset.
