@@ -49,14 +49,16 @@ void jammer_onEvent(int evt) {
 void jammer_onDraw(U8G2 *u8g2) {
   u8g2->clearBuffer();
   u8g2->setDrawColor(1);
+  u8g2->drawXBM(0, 12, bat_tx_width, bat_tx_height, bat_tx_bits);
   u8g2->setFont(u8g2_font_7x14_tr);
-  u8g2->drawStr(10, 10, "Jammer running...");
-  u8g2->drawStr(10, 20, "Freq: ");
+  u8g2->drawStr(40, 10, "Jamming at");
   char buf[8];
   dtostrf(jammer_frequency, 4, 3, buf);
-  u8g2->drawStr(50, 20, buf);
-  u8g2->drawStr(10, 35, String("Preset: " + getPresetString(preset)).c_str());
-  u8g2->drawStr(10, 50, "Press BACK to stop");
+  u8g2->drawStr(55, 25, buf);
+  u8g2->drawStr(105, 25, "MHz");
+  u8g2->drawStr(65, 40, String(getPresetString(preset)).c_str());
+  u8g2->setFont(u8g2_font_tiny5_tr);
+  u8g2->drawButtonUTF8(80, 55, U8G2_BTN_BW2, 0,  2,  2, "Hold to exit");
   u8g2->sendBuffer();
 }
 
