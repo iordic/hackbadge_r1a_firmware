@@ -37,10 +37,10 @@ void input_init() {
     downBtn.setup(BUTTON_DOWN, INPUT, true);
     enterBtn.setup(BUTTON_ENTER, INPUT, true);
     // attach callbacks
-    leftBtn.attachClick(handleLeft);
-    rightBtn.attachClick(handleRight);
-    upBtn.attachClick(handleUp);
-    downBtn.attachClick(handleDown);
+    leftBtn.attachPress(handleLeft);
+    rightBtn.attachPress(handleRight);
+    upBtn.attachPress(handleUp);
+    downBtn.attachPress(handleDown);
     enterBtn.attachClick(handleOk);
     enterBtn.attachLongPressStart(handleBack);
 }
