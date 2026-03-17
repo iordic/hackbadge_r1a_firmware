@@ -1,6 +1,9 @@
 #include <stdint.h>
 #include <Arduino.h>
 
+// Globals
+const char FIRMWARE_VERSION[] PROGMEM = "0.0.1b";
+
 // Menu item icons
 const uint16_t WAVE_ICON PROGMEM = 0x0055;
 const uint16_t BLUETOOTH_ICON PROGMEM = 0x005e;
@@ -16,6 +19,10 @@ const uint16_t RGB_ICON PROGMEM = 0x0047;
 const uint16_t RADIO_ICON PROGMEM = 0x0054;
 const uint16_t SPAM_ICON PROGMEM = 0x009d;
 const uint16_t FORBIDDEN_ICON PROGMEM = 0x0057;
+const uint16_t SIMPLE_RECEIVE_ICON PROGMEM = 0x0100;
+const uint16_t SIMPLE_TRANSMIT_ICON PROGMEM = 0x00a4;
+const uint16_t HEART_ICON PROGMEM = 0x00b7;
+const uint16_t ABOUT_ICON PROGMEM = 0x00bc;
 
 // Menu item labels
 const char MENU_ITEM_SUBGHZ[] PROGMEM = "Subghz";
@@ -25,12 +32,15 @@ const char MENU_ITEM_GAMES[] PROGMEM = "Games";
 const char MENU_ITEM_SETTINGS[] PROGMEM = "Settings";
 const char MENU_ITEM_RADIO_NOT_FOUND[] PROGMEM = "cc1101 not found";
 const char MENU_ITEM_TRANSMIT[] PROGMEM = "Transmit";
-const char MENU_ITEM_RECEIVE[] PROGMEM = "Receive";
-const char MENU_ITEM_SNAKE[] PROGMEM = "Snake";
 const char MENU_ITEM_JAMMER[] PROGMEM = "Jammer";
+const char MENU_ITEM_RECEIVE[] PROGMEM = "Receive";
+const char MENU_ITEM_SIMPLE_RX[] PROGMEM = "Simple Rx";
+const char MENU_ITEM_SIMPLE_TX[] PROGMEM = "Simple Tx";
+const char MENU_ITEM_SNAKE[] PROGMEM = "Snake";
 const char MENU_ITEM_RADIO[] PROGMEM = "Radio";
 const char MENU_ITEM_RGB[] PROGMEM = "RGB Lights";
 const char MENU_ITEM_WIFI_BEACON_SPAM[] PROGMEM = "Beacon Spam";
+const char MENU_ITEM_ABOUT[] PROGMEM = "About";
 const char MENU_ITEM_NOT_IMPLEMENTED[] PROGMEM = "WIP. Coming soon!";
 
 // Rickroll SPAM Backon SSIDs

@@ -15,6 +15,7 @@ extern App app_snake;
 extern App app_jammer;
 extern App app_radio_receive;
 extern App app_wifi_beacon_spam;
+extern App app_about;
 
 Menu mainMenu;
 // Submenus
@@ -70,7 +71,7 @@ void menu_onStart() {
         xTaskNotifyWait(0, 0, &availableRadio, portMAX_DELAY);
         if (availableRadio) {
             addMenuNode(&subghzMenu, &UP_ICON, MENU_ITEM_TRANSMIT, &radioTransmitMenu);
-            addMenuNode(&subghzMenu, &DOWN_ICON, MENU_ITEM_RECEIVE, &mainMenu, &app_radio_receive);
+            addMenuNode(&subghzMenu, &DOWN_ICON, MENU_ITEM_RECEIVE, &radioReceiveMenu);
         } else {
             addMenuNode(&subghzMenu, &ERROR_ICON, MENU_ITEM_RADIO_NOT_FOUND, &mainMenu);
         }
@@ -78,11 +79,17 @@ void menu_onStart() {
     // Radio transmit submenu
     createMenu(&radioTransmitMenu, &subghzMenu, []() {
         addMenuNode(&radioTransmitMenu, &MEGAPHONE_ICON, MENU_ITEM_JAMMER, &subghzMenu, &app_jammer);
+        addMenuNode(&radioTransmitMenu, &SIMPLE_TRANSMIT_ICON, MENU_ITEM_SIMPLE_TX, &subghzMenu, &app_jammer);
+    });
+    // Radio receive submenu
+    createMenu(&radioReceiveMenu, &subghzMenu, []() {
+        addMenuNode(&radioReceiveMenu, &SIMPLE_RECEIVE_ICON, MENU_ITEM_SIMPLE_RX, &subghzMenu, &app_radio_receive);
     });
     // Settings submenu
     createMenu(&settingsMenu, &mainMenu, []() {
         addMenuNode(&settingsMenu, &RADIO_ICON, MENU_ITEM_RADIO, &radioSettingsMenu);
         addMenuNode(&settingsMenu, &RGB_ICON, MENU_ITEM_RGB, &neopixelSettingsMenu);
+        addMenuNode(&settingsMenu, &ABOUT_ICON, MENU_ITEM_ABOUT, &subghzMenu, &app_about);
     });
     // Radio settings submenu
     createMenu(&radioSettingsMenu, &settingsMenu, []() {
@@ -111,6 +118,7 @@ void menu_onStart() {
     gamesMenu.build();
     settingsMenu.build();
     radioTransmitMenu.build();
+    radioReceiveMenu.build();
     bleMenu.build();
     wifiMenu.build();
     radioSettingsMenu.build();

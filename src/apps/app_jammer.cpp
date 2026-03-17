@@ -9,6 +9,7 @@
 #include "tasks/radio_task.h"
 #include "utils/menu.h"
 #include "utils/radio_utils.h"
+#include "config/sprites.h"
 
 extern App app_menu;
 TaskHandle_t jammerTaskHandle = NULL;

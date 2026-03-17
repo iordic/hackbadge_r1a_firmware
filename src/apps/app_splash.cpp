@@ -2,8 +2,10 @@
 #include "app.h"
 #include "devices/display.h"
 #include "app_splash.h"
+#include "config/sprites.h"
 
 extern App app_menu;
+extern L33T_Animation BAT_SPLASH;
 
 void splash_onStart() {}
 
@@ -18,20 +20,18 @@ void splash_onEvent(int evt) {
 }
 
 void splash_onDraw(U8G2 *u8g2) {
-    u8g2->clearBuffer();
     u8g2->setDrawColor(1);
-    u8g2->drawFrame(38, 16, 88, 32);
+    u8g2->clearBuffer();
+    BAT_SPLASH.chkAnimation(true);
+    u8g2->drawXBM(BAT_SPLASH.getXpos(), BAT_SPLASH.getYpos(), BAT_SPLASH.getWidth(), BAT_SPLASH.getHeight(), bat_splash_bits[BAT_SPLASH.getCurrentFrame()]); 
+    u8g2->drawFrame(34, 30, 94, 34);
     u8g2->setFont(u8g2_font_5x8_mf);
-    u8g2->drawStr(44, 18, "badge:-$ whoami");
+    u8g2->drawStr(38, 32, "hackbat:-$ whoami");
     u8g2->setFont(u8g2_font_littlemissloudonbold_tr);
-    u8g2->drawStr(42, 30, "@iordic");
+    u8g2->drawStr(38, 46, "@iordic");
     u8g2->setFont(u8g2_font_6x10_mf);
-    u8g2->drawUTF8(40, 42, "Jordi Castelló");
-
-    PHANTOM.chkAnimation(true);
-    u8g2->drawXBM(PHANTOM.getXpos(), PHANTOM.getYpos(), PHANTOM.getWidth(), PHANTOM.getHeight(), phantom_animation_bits[PHANTOM.getCurrentFrame()]); 
-    if (PHANTOM.toReset())
-        PHANTOM.resetAni();
+    u8g2->drawUTF8(38, 58, "Jordi Castelló");
+    if (BAT_SPLASH.toReset()) BAT_SPLASH.resetAni();
     u8g2->sendBuffer();
 }
 
