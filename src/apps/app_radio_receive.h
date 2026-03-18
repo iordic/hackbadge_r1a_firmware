@@ -4,4 +4,6 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <freertos/queue.h>
+
+void drawReceivedSignalsList(U8G2 *u8g2);
 #endif

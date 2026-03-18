@@ -48,6 +48,10 @@ void addMenuNode(Menu* menu, std::function<uint16_t()>getIcon, std::function<Str
     addMenuNode(menu, getIcon, getStr, [next]() {changeMenu(next);});
 }
 
+void addMenuNode(Menu* menu, const uint16_t *icon, const char* ptr, std::function<void()>click) {
+    addMenuNode(menu, [icon]() -> uint16_t {return icon ? *icon : 0;}, [ptr]() {return String(ptr);}, click);
+}
+
 void addMenuNode(Menu* menu, const char* ptr, std::function<void()>click) {
     addMenuNode(menu, [ptr]() {
         return String(ptr);
@@ -96,4 +100,57 @@ void addMenuNodeSetting(Menu* menu, const char* ptr, SettingsValue* value, std::
         [value](){ value->current =  value->current == 0 ? 0 : value->current-1;}, 
         [value](){ value->current = value->current == value->max ? value->max : value->current+1;}}
     );
+}
+
+int drawMenu(U8G2 *u8g2, Menu* menu, int firstItem) {
+    uint8_t xStartWritting = 0;
+    u8g2->clearBuffer();
+    const int visibleCount = 4;  // número de líneas visibles en pantalla
+    String tmp;
+    int tmpLen;
+
+    int total = menu->list->size();
+
+    // --- Seguridad: evitar índices fuera de rango ---
+    if (menu->selected < 0)
+        menu->selected = total - 1; // wrap around to the bottom
+    else if (menu->selected >= total)
+        menu->selected = 0; // wrap around to the top
+
+    // --- Ajuste automático del scroll vertical (firstItem) ---
+    // Mueve la "ventana" visible cuando el elemento seleccionado sale del rango actual
+    if (menu->selected >= firstItem + visibleCount)
+        firstItem = menu->selected - visibleCount + 1;
+    else if (menu->selected < firstItem)
+        firstItem = menu->selected;
+
+    // --- Límite inferior (scroll hacia arriba) ---
+    if (firstItem < 0) firstItem = 0;
+
+    // --- Límite superior (scroll hacia abajo) ---
+    // Si hay más elementos que líneas visibles, el máximo desplazamiento es total - visibleCount
+    if (total > visibleCount) {
+        if (firstItem > total - visibleCount)
+            firstItem = total - visibleCount;
+    } else {
+        // Si caben todos, mantener siempre en 0
+        firstItem = 0;
+    }
+    // --- Dibujar los ítems visibles ---
+    for (int i = firstItem; i < total && i < firstItem + visibleCount; i++) {
+        xStartWritting = 2;
+        int drawColor = menu->selected == i ? 1 : 0;
+        u8g2->setDrawColor(drawColor);
+        u8g2->drawBox(0, (i - firstItem) * 16, 128, 16);
+        u8g2->setDrawColor(!drawColor);
+        if (menu->list->get(i).getIcon()) {
+            u8g2->setFont(u8g2_font_open_iconic_all_2x_t);
+            u8g2->drawGlyph(xStartWritting, (i - firstItem + 1) * 16, menu->list->get(i).getIcon());
+            xStartWritting = 21;
+        }
+        u8g2->setFont(u8g2_font_7x14_mr);
+        u8g2->drawStr(xStartWritting, (i - firstItem + 1) * 16 - 2, menu->list->get(i).getStr().c_str());
+    }
+    u8g2->sendBuffer();
+    return firstItem;
 }

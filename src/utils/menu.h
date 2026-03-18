@@ -33,9 +33,11 @@ void addMenuNode(Menu* menu, std::function<String()>getStr, std::function<void()
 void addMenuNode(Menu* menu, std::function<String()>getStr, Menu* next);
 void addMenuNode(Menu* menu, std::function<uint16_t()>getIcon, std::function<String()>getStr, Menu* next);
 void addMenuNode(Menu* menu, const char* ptr, std::function<void()>click);
+void addMenuNode(Menu* menu, const uint16_t *icon, const char* ptr, std::function<void()>click);
 void addMenuNode(Menu* menu, const char* ptr, Menu* next);
 void addMenuNode(Menu* menu, const uint16_t *icon, const char* ptr, Menu* next);
 void addMenuNode(Menu* menu, const uint16_t *icon, const char* ptr, App* back, Menu* next);
 void addMenuNode(Menu* menu, const uint16_t *icon, const char* ptr, Menu* back, App* next);
 void addMenuNodeSetting(Menu* menu, const char* ptr, SettingsValue* value, std::function<String(uint8_t)>conversionFromEnum, Menu* back);
+int drawMenu(U8G2 *u8g2, Menu* menu, int firstItem);
 #endif

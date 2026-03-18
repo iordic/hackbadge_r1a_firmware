@@ -147,55 +147,7 @@ void menu_onEvent(int evt) {
 }
 
 void menu_onDraw(U8G2 *u8g2) {
-    uint8_t xStartWritting = 0;
-    u8g2->clearBuffer();
-    const int visibleCount = 4;  // número de líneas visibles en pantalla
-    String tmp;
-    int tmpLen;
-
-    int total = currentMenu->list->size();
-
-    // --- Seguridad: evitar índices fuera de rango ---
-    if (currentMenu->selected < 0)
-        currentMenu->selected = total - 1; // wrap around to the bottom
-    else if (currentMenu->selected >= total)
-        currentMenu->selected = 0; // wrap around to the top
-
-    // --- Ajuste automático del scroll vertical (row) ---
-    // Mueve la "ventana" visible cuando el elemento seleccionado sale del rango actual
-    if (currentMenu->selected >= row + visibleCount)
-        row = currentMenu->selected - visibleCount + 1;
-    else if (currentMenu->selected < row)
-        row = currentMenu->selected;
-
-    // --- Límite inferior (scroll hacia arriba) ---
-    if (row < 0) row = 0;
-
-    // --- Límite superior (scroll hacia abajo) ---
-    // Si hay más elementos que líneas visibles, el máximo desplazamiento es total - visibleCount
-    if (total > visibleCount) {
-        if (row > total - visibleCount)
-            row = total - visibleCount;
-    } else {
-        // Si caben todos, mantener siempre en 0
-        row = 0;
-    }
-    // --- Dibujar los ítems visibles ---
-    for (int i = row; i < total && i < row + visibleCount; i++) {
-        xStartWritting = 2;
-        int drawColor = currentMenu->selected == i ? 1 : 0;
-        u8g2->setDrawColor(drawColor);
-        u8g2->drawBox(0, (i - row) * 16, 128, 16);
-        u8g2->setDrawColor(!drawColor);
-        if (currentMenu->list->get(i).getIcon()) {
-            u8g2->setFont(u8g2_font_open_iconic_all_2x_t);
-            u8g2->drawGlyph(xStartWritting, (i - row + 1) * 16, currentMenu->list->get(i).getIcon());
-            xStartWritting = 21;
-        }
-        u8g2->setFont(u8g2_font_7x14_mr);
-        u8g2->drawStr(xStartWritting, (i - row + 1) * 16 - 2, currentMenu->list->get(i).getStr().c_str());
-    }
-    u8g2->sendBuffer();
+    row = drawMenu(u8g2, currentMenu, row);
 }
 
 void showPopupMenu(const char* message) {
@@ -207,7 +159,6 @@ void showPopupMenu(const char* message) {
     u8g2->drawRFrame(10, 10, 110, 40, 5);
     u8g2->setFont(u8g2_font_7x14_mr);
     int16_t strWidth = u8g2->getStrWidth(message);
-    //u8g2->drawBox((128 - strWidth - 12) / 2, 12, strWidth + 12, 30);
     u8g2->drawStr((128 - strWidth) / 2, 36, message);
     u8g2->sendBuffer();
 }
