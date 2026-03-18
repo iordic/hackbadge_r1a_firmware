@@ -6,4 +6,5 @@
 #include <freertos/queue.h>
 
 void drawReceivedSignalsList(U8G2 *u8g2);
+void replaySignal();
 #endif

@@ -6,6 +6,7 @@ enum RadioOperation {
   CHECK = 0,
   START_JAMMER,
   RECEIVE_SIGNAL,
+  RADIO_REPLAY_SIGNAL,
   RADIO_STOP
 };
 

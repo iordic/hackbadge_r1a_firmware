@@ -29,7 +29,7 @@ void radio_receive_onStart() {
     onSelectedMenu = false;
     receivedMessages = new SimpleList<RFMessage>;
     createMenu(&receivedSignalsMenu, NULL, [](){
-        addMenuNode(&receivedSignalsMenu, &REPLAY_ICON, MENU_ITEM_REPLAY, [](){Serial.println("Replay signal");}/* TODO: Implement replay functionality */);
+        addMenuNode(&receivedSignalsMenu, &REPLAY_ICON, MENU_ITEM_REPLAY, [](){ replaySignal(); });
         addMenuNode(&receivedSignalsMenu, &SAVE_ICON, MENU_ITEM_SAVE, [](){ Serial.println("Save signal");}/* TODO: Implement save functionality */);
     });
     emptyList = true;
@@ -161,6 +161,13 @@ void drawReceivedSignalsList(U8G2 *u8g2) {
         u8g2->drawStr(2, (i - row + 2) * 14 - 2, msgStr.c_str());
     }
     u8g2->sendBuffer();
+}
+
+void replaySignal() {
+    if (receivedMessages->size() == 0) return;
+    RFMessage msg = receivedMessages->get(selectedSignalIndex);
+    xTaskNotify(radioReceiverTaskHandle, RADIO_REPLAY_SIGNAL, eSetValueWithOverwrite);
+    xQueueSend(queue, &msg, 0);
 }
 
 App app_radio_receive = {

@@ -23,4 +23,5 @@ void radio_task(void *pv);
 void loadConfiguration(int frequencyOption, int preset);
 void lockJamming();
 void radioReceiveSignal();
+void replaySignal(RCSwitch *mySwitch, RFMessage msg);
 #endif

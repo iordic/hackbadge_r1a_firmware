@@ -99,6 +99,31 @@ void radioReceiveSignal() {
         }
         xRadioResult = xTaskNotifyWait(0, 0, &radioNotificationValue, 0);
         if (xRadioResult == pdTRUE && radioNotificationValue == RADIO_STOP)  break;
+        if (xRadioResult == pdTRUE && radioNotificationValue == RADIO_REPLAY_SIGNAL) {
+            RFMessage sendMsg;
+            xQueueReceive(radioQueue, &sendMsg, portMAX_DELAY);
+            replaySignal(&mySwitch, sendMsg);
+        }
         vTaskDelay(10 / portTICK_PERIOD_MS);
     }
+}
+
+void replaySignal(RCSwitch *mySwitch, RFMessage msg) {
+    Serial.println("Replaying signal...");
+    // 1. Preparar para Transmitir
+    mySwitch->disableReceive();          // Detener el sniffing
+    detachInterrupt(digitalPinToInterrupt(CC1101_GDO0)); // Limpieza manual por seguridad
+    cc1101->setTx();
+    pinMode(CC1101_GDO0, OUTPUT);
+    mySwitch->enableTransmit(CC1101_GDO0);
+    mySwitch->setRepeatTransmit(10);
+    mySwitch->setProtocol(msg.protocol);
+    mySwitch->send(msg.value, msg.length);
+    // 2. Limpieza Post-Transmisión
+    mySwitch->disableTransmit(); 
+    // 3. Volver a modo Recepción
+    cc1101->setRx();
+    pinMode(CC1101_GDO0, INPUT);         // Volver a poner el pin como entrada
+    mySwitch->enableReceive(digitalPinToInterrupt(CC1101_GDO0)); 
+    Serial.println("Volviendo a modo RX...");
 }
