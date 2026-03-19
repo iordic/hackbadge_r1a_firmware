@@ -40,4 +40,5 @@ void addMenuNode(Menu* menu, const uint16_t *icon, const char* ptr, App* back, M
 void addMenuNode(Menu* menu, const uint16_t *icon, const char* ptr, Menu* back, App* next);
 void addMenuNodeSetting(Menu* menu, const char* ptr, SettingsValue* value, std::function<String(uint8_t)>conversionFromEnum, Menu* back);
 int drawMenu(U8G2 *u8g2, Menu* menu, int firstItem);
+void showPopupMenu(const char* message);
 #endif

@@ -7,5 +7,4 @@
 
 void saveRadioConfig();
 void saveNeopixelConfig();
-void showPopupMenu(const char* message);
 #endif

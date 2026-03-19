@@ -168,6 +168,7 @@ void replaySignal() {
     RFMessage msg = receivedMessages->get(selectedSignalIndex);
     xTaskNotify(radioReceiverTaskHandle, RADIO_REPLAY_SIGNAL, eSetValueWithOverwrite);
     xQueueSend(queue, &msg, 0);
+    showPopupMenu("Signal replayed!");
 }
 
 App app_radio_receive = {

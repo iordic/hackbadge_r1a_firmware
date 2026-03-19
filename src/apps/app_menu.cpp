@@ -1,7 +1,6 @@
 #include "literals.h"
 #include "app.h"
 #include "config/io_config.h"
-#include "devices/display.h"
 #include "app_menu.h"
 
 #include "tasks/ui_task.h"
@@ -150,26 +149,12 @@ void menu_onDraw(U8G2 *u8g2) {
     row = drawMenu(u8g2, currentMenu, row);
 }
 
-void showPopupMenu(const char* message) {
-    U8G2 *u8g2 = display_get();
-    u8g2->setDrawColor(0);
-    u8g2->drawRBox(10, 10, 110, 40, 2);
-    u8g2->setDrawColor(1);
-    u8g2->drawRFrame(12, 12, 106, 36, 2);
-    u8g2->drawRFrame(10, 10, 110, 40, 5);
-    u8g2->setFont(u8g2_font_7x14_mr);
-    int16_t strWidth = u8g2->getStrWidth(message);
-    u8g2->drawStr((128 - strWidth) / 2, 36, message);
-    u8g2->sendBuffer();
-}
-
 void saveRadioConfig() {
     int ok = 0;
     ok += prefs.putUChar("frequency", frequencySelectedConfig.current);
     ok += prefs.putUChar("preset", radioPresetConfig.current);
     if (ok >= 2) showPopupMenu("Saved!");
     else showPopupMenu("Failed.");
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
 }
 
 void saveNeopixelConfig() {
@@ -177,7 +162,6 @@ void saveNeopixelConfig() {
     sendNeopixelConfig(NeopixelConfiguration{RANDOM_ALL, neopixelBrightnessConfig.current, {0,0,0,0}});
     if (ok) showPopupMenu("Saved!");
     else showPopupMenu("Failed.");
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
 }
 
 App app_menu = {

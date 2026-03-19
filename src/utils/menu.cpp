@@ -4,6 +4,8 @@
 #include "app.h"
 #include "menu.h"
 
+#include "devices/display.h"
+
 Menu* currentMenu;
 
 // Adapted snippet taken from esp8266_deauther
@@ -153,4 +155,17 @@ int drawMenu(U8G2 *u8g2, Menu* menu, int firstItem) {
     }
     u8g2->sendBuffer();
     return firstItem;
+}
+
+void showPopupMenu(const char* message) {
+    U8G2 *u8g2 = display_get();
+    u8g2->setFont(u8g2_font_7x14_mr);
+    int16_t strWidth = u8g2->getStrWidth(message);
+    u8g2->setDrawColor(0);
+    u8g2->drawRBox(((128 - strWidth) / 2) - 5, 10, strWidth + 10, 40, 2);
+    u8g2->setDrawColor(1);
+    u8g2->drawRFrame(((128 - strWidth) / 2) - 5, 10, strWidth + 10, 40, 2);
+    u8g2->drawStr((128 - strWidth) / 2, 36, message);
+    u8g2->sendBuffer();
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
 }
