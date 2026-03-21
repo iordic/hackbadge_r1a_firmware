@@ -77,24 +77,29 @@ bool OLEDKeyboard::update() {
 }
 
 void OLEDKeyboard::handleInput(KeyBoardInput input) {
-  if (input == PRESSED_NONE) return; // No input
-  
-  // Handle UP button
-  if (input == PRESSED_UP) {
-    _selectedKeyIndex = (_selectedKeyIndex - 1 + KEY_COUNT) % KEY_COUNT;
+  int actualRow = _selectedKeyIndex / KEY_COLS;
+  int actualCol = _selectedKeyIndex % KEY_COLS;
+  switch (input) {
+  case PRESSED_NONE:
+    return;
+  case PRESSED_UP:
+    actualRow = (actualRow - 1 + KEY_ROWS) % KEY_ROWS;
+    break;
+  case PRESSED_DOWN:
+    actualRow = (actualRow + 1) % KEY_ROWS;
+    break;
+  case PRESSED_LEFT:
+    actualCol = (actualCol - 1 + KEY_COLS) % KEY_COLS;
+    break;
+  case PRESSED_RIGHT:
+    actualCol = (actualCol + 1) % KEY_COLS;
+    break;
+  case PRESSED_OK:
+      const char* const* currentKeys = _getCurrentKeys();
+      const char* selectedKey = currentKeys[_selectedKeyIndex];
+      _processKeyPress(selectedKey);
   }
-  
-  // Handle DOWN button
-  if (input == PRESSED_DOWN) {
-    _selectedKeyIndex = (_selectedKeyIndex + 1) % KEY_COUNT;
-  }
-  
-  // Handle SELECT button
-  if ( input == PRESSED_OK) {    
-    const char* const* currentKeys = _getCurrentKeys();
-    const char* selectedKey = currentKeys[_selectedKeyIndex];
-    _processKeyPress(selectedKey);
-  }
+  _selectedKeyIndex = actualRow * KEY_COLS + actualCol;
 }
 
 void OLEDKeyboard::draw() {
