@@ -7,4 +7,5 @@
 
 void saveRadioConfig();
 void saveNeopixelConfig();
+void saveProfileConfig();
 #endif

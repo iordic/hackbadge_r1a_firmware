@@ -29,15 +29,17 @@ Menu radioReceiveMenu;
 // settings submenus
 Menu radioSettingsMenu;
 Menu neopixelSettingsMenu;
+Menu profileSettingsMenu;
 
 extern Menu* currentMenu;
 
 int row;
-Preferences prefs;
+extern Preferences prefs;
 SettingsValue frequencySelectedConfig;
 SettingsValue radioPresetConfig;
 SettingsValue neopixelBrightnessConfig;
 uint32_t availableRadio = 0;
+UserInfo userInfoSettings;
 
 void menu_onStart() {
     row = 0;
@@ -49,6 +51,8 @@ void menu_onStart() {
     frequencySelectedConfig.max = FREQ_915MHZ;
     radioPresetConfig.max = PRESET_FM476;
     neopixelBrightnessConfig.max = 10;
+    userInfoSettings.name = prefs.getString("user_name", "John Doe");
+    userInfoSettings.nick = prefs.getString("user_nick", "johndoe");
     // Main menu
     createMenu(&mainMenu, NULL, []() {
         addMenuNode(&mainMenu, &WAVE_ICON, MENU_ITEM_SUBGHZ, &app_splash, &subghzMenu);
@@ -89,6 +93,7 @@ void menu_onStart() {
         addMenuNode(&settingsMenu, &RADIO_ICON, MENU_ITEM_RADIO, &radioSettingsMenu);
         addMenuNode(&settingsMenu, &RGB_ICON, MENU_ITEM_RGB, &neopixelSettingsMenu);
         addMenuNode(&settingsMenu, &ABOUT_ICON, MENU_ITEM_ABOUT, &subghzMenu, &app_about);
+        addMenuNode(&settingsMenu, &USER_ICON, "Profile", &profileSettingsMenu);
     });
     // Radio settings submenu
     createMenu(&radioSettingsMenu, &settingsMenu, []() {
@@ -100,6 +105,12 @@ void menu_onStart() {
     createMenu(&neopixelSettingsMenu, &settingsMenu, []() {
         addMenuNodeSetting(&neopixelSettingsMenu, "Brightness ", &neopixelBrightnessConfig, [](uint8_t value){ return String(value);}, &settingsMenu);
         addMenuNode(&neopixelSettingsMenu, "Apply changes", &saveNeopixelConfig);
+    });
+    // Profile settings submenu
+    createMenu(&profileSettingsMenu, &settingsMenu, []() {
+        addMenuNode(&profileSettingsMenu, [](){ return "Name: " + userInfoSettings.name; }, [](){ startKeyboard(&userInfoSettings.name); /* click() */});
+        addMenuNode(&profileSettingsMenu, [](){ return "Nick: " + userInfoSettings.nick; }, [](){ startKeyboard(&userInfoSettings.nick); /* click() */});
+        addMenuNode(&profileSettingsMenu, "Apply changes", &saveProfileConfig);
     });
     // BLE submenu
     createMenu(&bleMenu, &mainMenu, []() {
@@ -122,6 +133,7 @@ void menu_onStart() {
     wifiMenu.build();
     radioSettingsMenu.build();
     neopixelSettingsMenu.build();
+    profileSettingsMenu.build();
 }
 
 void menu_onStop() {
@@ -142,7 +154,6 @@ void menu_onEvent(int evt) {
     } else if (evt == BTN_RIGHT) {
         currentMenu->list->get(currentMenu->selected).right();
     }
-    
 }
 
 void menu_onDraw(U8G2 *u8g2) {
@@ -161,6 +172,12 @@ void saveNeopixelConfig() {
     int ok =  prefs.putUChar("brightness", neopixelBrightnessConfig.current);
     sendNeopixelConfig(NeopixelConfiguration{RANDOM_ALL, neopixelBrightnessConfig.current, {0,0,0,0}});
     if (ok) showPopupMenu("Saved!");
+    else showPopupMenu("Failed.");
+}
+void saveProfileConfig() {
+    int ok =  prefs.putString("user_name", userInfoSettings.name);
+    ok += prefs.putString("user_nick", userInfoSettings.nick);
+    if (ok >= 2) showPopupMenu("Saved!");
     else showPopupMenu("Failed.");
 }
 

@@ -3,13 +3,22 @@
 #include "devices/display.h"
 #include "app_splash.h"
 #include "config/sprites.h"
+#include "tasks/ui_task.h"
 
 extern App app_menu;
 extern L33T_Animation BAT_SPLASH;
+extern Preferences prefs;
+UserInfo userInfo;
 
-void splash_onStart() {}
+void splash_onStart() {
+    prefs.begin("splash", false);
+    userInfo.name = prefs.getString("user_name", "John Doe");
+    userInfo.nick = prefs.getString("user_nick", "johndoe");
+}
 
-void splash_onStop() {}
+void splash_onStop() {
+   // prefs.end();
+}
 
 void splash_onEvent(int evt) {
     if (evt == BTN_BACK) {
@@ -28,9 +37,9 @@ void splash_onDraw(U8G2 *u8g2) {
     u8g2->setFont(u8g2_font_5x8_mf);
     u8g2->drawStr(38, 32, "hackbat:-$ whoami");
     u8g2->setFont(u8g2_font_littlemissloudonbold_tr);
-    u8g2->drawStr(38, 46, "@iordic");
+    u8g2->drawStr(38, 46, ("@" + userInfo.nick).c_str());
     u8g2->setFont(u8g2_font_6x10_mf);
-    u8g2->drawUTF8(38, 58, "Jordi Castelló");
+    u8g2->drawUTF8(38, 58, userInfo.name.c_str());
     if (BAT_SPLASH.toReset()) BAT_SPLASH.resetAni();
     u8g2->sendBuffer();
 }

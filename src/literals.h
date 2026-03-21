@@ -25,6 +25,7 @@ const uint16_t HEART_ICON PROGMEM = 0x00b7;
 const uint16_t ABOUT_ICON PROGMEM = 0x00bc;
 const uint16_t SAVE_ICON PROGMEM = 0x0061;
 const uint16_t REPLAY_ICON PROGMEM = 0x00cc;
+const uint16_t USER_ICON PROGMEM = 0x00e5;
 
 // Menu item labels
 const char MENU_ITEM_SUBGHZ[] PROGMEM = "Subghz";

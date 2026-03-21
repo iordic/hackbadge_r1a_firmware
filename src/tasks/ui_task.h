@@ -9,4 +9,6 @@
 
 void ui_task(void *pv);
 void sendNeopixelConfig(NeopixelConfiguration params);
+void startKeyboard(String *fieldToFill);
+void keyboardInputLoop();
 #endif

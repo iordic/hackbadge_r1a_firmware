@@ -19,3 +19,8 @@ enum {
   BTN_OK,
   BTN_BACK
 };
+
+typedef struct UserInfo {
+    String nick;
+    String name;
+} UserInfo;
