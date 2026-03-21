@@ -92,8 +92,8 @@ void menu_onStart() {
     createMenu(&settingsMenu, &mainMenu, []() {
         addMenuNode(&settingsMenu, &RADIO_ICON, MENU_ITEM_RADIO, &radioSettingsMenu);
         addMenuNode(&settingsMenu, &RGB_ICON, MENU_ITEM_RGB, &neopixelSettingsMenu);
+        addMenuNode(&settingsMenu, &USER_ICON, MENU_ITEM_PROFILE, &profileSettingsMenu);
         addMenuNode(&settingsMenu, &ABOUT_ICON, MENU_ITEM_ABOUT, &subghzMenu, &app_about);
-        addMenuNode(&settingsMenu, &USER_ICON, "Profile", &profileSettingsMenu);
     });
     // Radio settings submenu
     createMenu(&radioSettingsMenu, &settingsMenu, []() {

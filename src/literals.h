@@ -44,6 +44,7 @@ const char MENU_ITEM_RADIO[] PROGMEM = "Radio";
 const char MENU_ITEM_RGB[] PROGMEM = "RGB Lights";
 const char MENU_ITEM_WIFI_BEACON_SPAM[] PROGMEM = "Beacon Spam";
 const char MENU_ITEM_ABOUT[] PROGMEM = "About";
+const char MENU_ITEM_PROFILE[] PROGMEM = "Profile";
 const char MENU_ITEM_SAVE[] PROGMEM = "Save";
 const char MENU_ITEM_REPLAY[] PROGMEM = "Replay";
 const char MENU_ITEM_NOT_IMPLEMENTED[] PROGMEM = "WIP. Coming soon!";
