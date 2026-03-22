@@ -17,30 +17,20 @@
 extern App app_menu;
 QueueHandle_t queue;
 TaskHandle_t radioReceiverTaskHandle = NULL;
-bool emptyList, onSelectedMenu;
 RadioTaskParams *receiverParams;
 extern Preferences prefs;
 extern uint8_t ledsBrightness;
+Menu mainListReceivedSignals;
 Menu receivedSignalsMenu;
 Menu saveFileMenu;
 SimpleList <RFMessage> *receivedMessages;
-int selectedSignalIndex = 0;
 extern int row;
 extern Menu* currentMenu;
 String saveFileName = "";
 
 void radio_receive_onStart() {
-    onSelectedMenu = false;
+    currentMenu = &mainListReceivedSignals;
     receivedMessages = new SimpleList<RFMessage>;
-    createMenu(&receivedSignalsMenu, NULL, [](){
-        addMenuNode(&receivedSignalsMenu, &REPLAY_ICON, MENU_ITEM_REPLAY, [](){ replaySignal(); });
-        addMenuNode(&receivedSignalsMenu, &SAVE_ICON, MENU_ITEM_SAVE, &saveFileMenu);
-    });
-    createMenu(&saveFileMenu, &receivedSignalsMenu, []() {
-        addMenuNode(&saveFileMenu, [](){ return "Name: " + saveFileName; }, [](){ startKeyboard(&saveFileName); /* click() */});
-        addMenuNode(&saveFileMenu, "Accept", &saveSignal);
-    });
-    emptyList = true;
     receiverParams = (RadioTaskParams *) malloc(sizeof(RadioTaskParams));
     receiverParams->operation = RECEIVE_SIGNAL;
     receiverParams->frequency = prefs.getUChar("frequency", FREQ_433MHZ);
@@ -51,6 +41,16 @@ void radio_receive_onStart() {
     ledsBrightness = prefs.getUChar("brightness");
     sendNeopixelConfig(NeopixelConfiguration{FIXED_COLOR, ledsBrightness, {0x000000ff,0x000000ff,0x000000ff,0x000000ff}});
     xTaskCreatePinnedToCore(radio_task, "RadioReceiverWorker", 2048, receiverParams, 5, &radioReceiverTaskHandle, 1);
+    // Create received signals menu
+    createDynamicMenu(&mainListReceivedSignals, NULL, [](){return String(getFrequencyFromEnum(receiverParams->frequency)) + "MHz " + getPresetNameFromEnum(receiverParams->preset);}, [](){});
+    createMenu(&receivedSignalsMenu, &mainListReceivedSignals, [](){
+        addMenuNode(&receivedSignalsMenu, &REPLAY_ICON, MENU_ITEM_REPLAY, [](){ replaySignal(); });
+        addMenuNode(&receivedSignalsMenu, &SAVE_ICON, MENU_ITEM_SAVE, &saveFileMenu);
+    });
+    createMenu(&saveFileMenu, &receivedSignalsMenu, []() {
+        addMenuNode(&saveFileMenu, [](){ return "Name: " + saveFileName; }, [](){ startKeyboard(&saveFileName);});
+        addMenuNode(&saveFileMenu, "Accept", &saveSignal);
+    });
     receivedSignalsMenu.build();
     saveFileMenu.build();
 }
@@ -59,124 +59,54 @@ void radio_receive_onStop() {
     xTaskNotify(radioReceiverTaskHandle, RADIO_STOP, eSetValueWithOverwrite);
     sendNeopixelConfig(NeopixelConfiguration{RANDOM_ALL, ledsBrightness, {0,0,0}});
     vQueueDelete(queue);
+    currentMenu = NULL;
 }
 
 void radio_receive_onDraw(U8G2 *u8g2) {    
     RFMessage msg;
     u8g2->setDrawColor(1);
-    if (onSelectedMenu) {
-        row = drawMenu(u8g2, &receivedSignalsMenu, row);
-    } else {
-        if (emptyList) {
-            u8g2->clearBuffer();
-            u8g2->drawXBM(3, 0, bat_rx_width, bat_rx_height, bat_rx_bits);
-            u8g2->setFont(u8g2_font_7x14_tr);
-            u8g2->drawStr(40, 10, "Listening at");
-            u8g2->drawStr(55, 25, (String(getFrequencyFromEnum(receiverParams->frequency)) + "MHz ").c_str());
-            u8g2->drawStr(80, 40, getPresetNameFromEnum(receiverParams->preset).c_str());
-            emptyList = false;
-            u8g2->sendBuffer();
-        } else if (receivedMessages->size() > 0) {
-            drawReceivedSignalsList(u8g2);
-        }
+    if (receivedMessages->size() == 0) {
+        u8g2->clearBuffer();
+        u8g2->drawXBM(3, 0, bat_rx_width, bat_rx_height, bat_rx_bits);
+        u8g2->setFont(u8g2_font_7x14_tr);
+        u8g2->drawStr(40, 10, "Listening at");
+        u8g2->drawStr(55, 25, (String(getFrequencyFromEnum(receiverParams->frequency)) + "MHz ").c_str());
+        u8g2->drawStr(80, 40, getPresetNameFromEnum(receiverParams->preset).c_str());
+        u8g2->sendBuffer();
+    } else if (receivedMessages->size() > 0) {
+        row = drawMenu(u8g2, currentMenu, row);
     }
     if (xQueueReceive(queue, &msg, 0) == pdTRUE) {
         receivedMessages->add(msg);
+        String signalLabel = "P" + String(msg.protocol) +" V" + String(msg.value, HEX)+ " L" + String(msg.length);
+        addMenuNode(&mainListReceivedSignals, signalLabel, &app_menu, &receivedSignalsMenu);
     }
 }
 void radio_receive_onEvent(int evt) {
-    /*
+    if (receivedMessages->size() == 0) {
+        if (evt == BTN_BACK) {
+            changeAppContext(&app_menu);
+        }
+        return;
+    }
     if (evt == BTN_BACK) {
-        if (onSelectedMenu && currentMenu->parentMenu == NULL) {
-            onSelectedMenu = false;
-        } else {
-            radio_receive_onStop();
-            extern App *currentApp;
-            currentApp = &app_menu;
-            currentApp->onStart();   
-        }
+        currentMenu->list->get(currentMenu->selected).hold();
     } else if (evt == BTN_OK) {
-        if (receivedMessages->size() > 0 && !onSelectedMenu) {
-            onSelectedMenu = true;
-            receivedSignalsMenu.selected = 0;
-        } else if (onSelectedMenu) {
-            receivedSignalsMenu.list->get(receivedSignalsMenu.selected).click();
-        }
+        currentMenu->list->get(currentMenu->selected).click();
     } else if (evt == BTN_UP) {
-        if (onSelectedMenu) {
-            receivedSignalsMenu.selected--;
-            if (receivedSignalsMenu.selected < 0) receivedSignalsMenu.selected = 0;
-        }else {
-            selectedSignalIndex--;
-            if (selectedSignalIndex < 0) selectedSignalIndex = 0;
-        }
+        currentMenu->selected--;
     } else if (evt == BTN_DOWN) {
-        if (onSelectedMenu) {
-            receivedSignalsMenu.selected++;
-            if (receivedSignalsMenu.selected >= receivedSignalsMenu.list->size()) receivedSignalsMenu.selected = receivedSignalsMenu.list->size() - 1;
-        } else {
-            selectedSignalIndex++;
-            if (selectedSignalIndex >= receivedMessages->size()) selectedSignalIndex = receivedMessages->size() - 1;
-        } 
-    } 
-        */
-}
-
-void drawReceivedSignalsList(U8G2 *u8g2) {
-    u8g2->clearBuffer();
-    u8g2->setFont(u8g2_font_t0_11_tr);
-    u8g2->drawStr(0, 8, (String(getFrequencyFromEnum(receiverParams->frequency)) + "MHz " + getPresetNameFromEnum(receiverParams->preset)).c_str());
-    u8g2->drawStr(95, 8, (String(selectedSignalIndex + 1) + "/" + String(receivedMessages->size())).c_str());
-    u8g2->setFont(u8g2_font_7x14_tr);
-
-    const int visibleCount = 3;  // número de líneas visibles en pantalla
-    String tmp;
-    int tmpLen;
-
-    int total = receivedMessages->size();
-
-    // --- Seguridad: evitar índices fuera de rango ---
-    if (selectedSignalIndex < 0)
-        selectedSignalIndex = total - 1; // wrap around to the bottom
-    else if (selectedSignalIndex >= total)
-        selectedSignalIndex = 0; // wrap around to the top
-
-    // --- Ajuste automático del scroll vertical (row) ---
-    // Mueve la "ventana" visible cuando el elemento seleccionado sale del rango actual
-    if (selectedSignalIndex >= row + visibleCount)
-        row = selectedSignalIndex - visibleCount + 1;
-    else if (selectedSignalIndex < row)
-        row = selectedSignalIndex;
-
-    // --- Límite inferior (scroll hacia arriba) ---
-    if (row < 0) row = 0;
-
-    // --- Límite superior (scroll hacia abajo) ---
-    // Si hay más elementos que líneas visibles, el máximo desplazamiento es total - visibleCount
-    if (total > visibleCount) {
-        if (row > total - visibleCount)
-            row = total - visibleCount;
-    } else {
-        // Si caben todos, mantener siempre en 0
-        row = 0;
+        currentMenu->selected++;
+    } else if (evt == BTN_LEFT) {
+        currentMenu->list->get(currentMenu->selected).left();
+    } else if (evt == BTN_RIGHT) {
+        currentMenu->list->get(currentMenu->selected).right();
     }
-    // --- Dibujar los ítems visibles ---
-    u8g2->setFont(u8g2_font_t0_12_mr);
-    for (int i = row; i < total && i < row + visibleCount; i++) {
-        RFMessage msg = receivedMessages->get(i);
-        String msgStr = "P" + String(msg.protocol) +" V" + String(msg.value, HEX)+ " L" + String(msg.length);
-        int drawColor = selectedSignalIndex == i ? 1 : 0;
-        u8g2->setDrawColor(drawColor);
-        u8g2->drawBox(0, (i - row + 1) * 14, 128, 16);
-        u8g2->setDrawColor(!drawColor);
-        u8g2->drawStr(2, (i - row + 2) * 14 - 2, msgStr.c_str());
-    }
-    u8g2->sendBuffer();
 }
 
 void replaySignal() {
     if (receivedMessages->size() == 0) return;
-    RFMessage msg = receivedMessages->get(selectedSignalIndex);
+    RFMessage msg = receivedMessages->get(mainListReceivedSignals.selected);
     xTaskNotify(radioReceiverTaskHandle, RADIO_REPLAY_SIGNAL, eSetValueWithOverwrite);
     xQueueSend(queue, &msg, 0);
     showPopupMenu("Signal replayed!");
@@ -184,13 +114,14 @@ void replaySignal() {
 
 void saveSignal() {
     if (receivedMessages->size() == 0) return;
-    RFMessage msg = receivedMessages->get(selectedSignalIndex);
+    RFMessage msg = receivedMessages->get(mainListReceivedSignals.selected);
     msg.frequency = receiverParams->frequency;
     msg.preset = receiverParams->preset;
-    startKeyboard(&saveFileName);
     bool result = FileUtils::save(SIMPLE_TRANSCEIVER_PATH, saveFileName, (uint8_t*)&msg, sizeof(RFMessage));
     if (result) {
         showPopupMenu("Saved!");
+        saveFileName = "";
+        currentMenu = &mainListReceivedSignals;
     } else {
         showPopupMenu("Error.");
     }

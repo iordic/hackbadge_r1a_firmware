@@ -5,8 +5,11 @@
 #include "menu.h"
 
 #include "devices/display.h"
+#include "tasks/ui_task.h"
 
 Menu* currentMenu;
+extern App *currentApp;
+extern Menu* currentMenu;
 
 // Adapted snippet taken from esp8266_deauther
 void changeMenu(Menu* menu) {
@@ -19,6 +22,13 @@ void createMenu(Menu* menu, Menu* parent, std::function<void()>build) {
     menu->parentMenu = parent;
     menu->selected   = 0;
     menu->build      = build;
+    menu->type       = MENU_LIST;
+}
+
+void createDynamicMenu(Menu* menu, Menu* parent, std::function<String()>getTitle, std::function<void()>build) {
+    createMenu(menu, parent, build);
+    menu->getTitle   = getTitle;
+    menu->type       = DYNAMIC_LIST;
 }
 
 void addMenuNode(Menu* menu, std::function<String()>getStr, std::function<void()>click,
@@ -76,15 +86,24 @@ void addMenuNode(Menu* menu, const uint16_t *icon, const char* ptr, App* back, M
         changeMenu(next);
     },
     [back]() {
-        extern App *currentApp;
         currentApp = back;
         currentApp->onStart();
     });
 }
 
+void addMenuNode(Menu* menu, String label, App* back, Menu* next) {
+    addMenuNode(menu, [label]() { return label;}, 
+    [next]() {
+        changeMenu(next);
+    },
+    [back]() {
+        currentMenu = NULL;
+        changeAppContext(back);
+    });
+}
+
 void addMenuNode(Menu* menu, const uint16_t *icon, const char* ptr, Menu* back, App* next) {
     addMenuNode(menu, [icon]() -> uint16_t {return icon ? *icon : 0;}, [ptr]() {return String(ptr);}, [next]() {
-        extern App *currentApp;
         currentApp = next;
         currentApp->onStart();
     }, [back]() {
@@ -105,6 +124,14 @@ void addMenuNodeSetting(Menu* menu, const char* ptr, SettingsValue* value, std::
 }
 
 int drawMenu(U8G2 *u8g2, Menu* menu, int firstItem) {
+    if (menu->type == MENU_LIST)
+        return drawStaticMenu(u8g2, menu, firstItem);
+    if (menu->type == DYNAMIC_LIST)
+        return drawDynamicList(u8g2, menu, firstItem);
+    return 0;
+}
+
+int drawStaticMenu(U8G2 *u8g2, Menu* menu, int firstItem) {
     uint8_t xStartWritting = 0;
     u8g2->clearBuffer();
     const int visibleCount = 4;  // número de líneas visibles en pantalla
@@ -152,6 +179,54 @@ int drawMenu(U8G2 *u8g2, Menu* menu, int firstItem) {
         }
         u8g2->setFont(u8g2_font_7x14_mr);
         u8g2->drawStr(xStartWritting, (i - firstItem + 1) * 16 - 2, menu->list->get(i).getStr().c_str());
+    }
+    u8g2->sendBuffer();
+    return firstItem;
+}
+
+int drawDynamicList(U8G2 *u8g2, Menu* menu, int firstItem) {
+    /* TODO: unify redundant code */
+    int tmpLen, visibleCount = 3;  // número de líneas visibles en pantalla
+    String tmp;
+    int total = menu->list->size();
+    u8g2->clearBuffer();
+    u8g2->setFont(u8g2_font_t0_11_tr);
+    u8g2->drawStr(0, 8, menu->getTitle().c_str());
+    u8g2->drawStr(95, 8, (String(menu->selected + 1) + "/" + String(menu->list->size())).c_str());
+    u8g2->setFont(u8g2_font_7x14_tr);
+    // --- Seguridad: evitar índices fuera de rango ---
+    if (menu->selected < 0)
+        menu->selected = total - 1; // wrap around to the bottom
+    else if (menu->selected >= total)
+        menu->selected = 0; // wrap around to the top
+
+    // --- Ajuste automático del scroll vertical (row) ---
+    // Mueve la "ventana" visible cuando el elemento seleccionado sale del rango actual
+    if (menu->selected >= firstItem + visibleCount)
+        firstItem = menu->selected - visibleCount + 1;
+    else if (menu->selected < firstItem)
+        firstItem = menu->selected;
+
+    // --- Límite inferior (scroll hacia arriba) ---
+    if (firstItem < 0) firstItem = 0;
+
+    // --- Límite superior (scroll hacia abajo) ---
+    // Si hay más elementos que líneas visibles, el máximo desplazamiento es total - visibleCount
+    if (total > visibleCount) {
+        if (firstItem > total - visibleCount)
+            firstItem = total - visibleCount;
+    } else {
+        // Si caben todos, mantener siempre en 0
+        firstItem = 0;
+    }
+    // --- Dibujar los ítems visibles ---
+    u8g2->setFont(u8g2_font_t0_12_mr);
+    for (int i = firstItem; i < total && i < firstItem + visibleCount; i++) {
+        int drawColor = menu->selected == i ? 1 : 0;
+        u8g2->setDrawColor(drawColor);
+        u8g2->drawBox(0, (i - firstItem + 1) * 14, 128, 16);
+        u8g2->setDrawColor(!drawColor);
+        u8g2->drawStr(2, (i - firstItem + 2) * 14 - 2, menu->list->get(i).getStr().c_str());
     }
     u8g2->sendBuffer();
     return firstItem;

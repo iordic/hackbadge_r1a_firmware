@@ -67,3 +67,9 @@ void keyboardInputLoop() {
     vTaskDelay(20 / portTICK_PERIOD_MS);
   }
 }
+
+void changeAppContext(App* newApp) {
+    currentApp->onStop();
+    currentApp = newApp;
+    currentApp->onStart();
+}
