@@ -4,6 +4,7 @@
 #include "app.h"
 #include "app_menu.h"
 
+#include "config/constants.h"
 #include "tasks/ui_task.h"
 #include "tasks/leds_task.h"
 #include "tasks/radio_task.h"
@@ -11,6 +12,7 @@
 #include "utils/radio_utils.h"
 #include "config/sprites.h"
 #include "utils/menu.h"
+#include "utils/file_utils.h"
 
 extern App app_menu;
 QueueHandle_t queue;
@@ -20,17 +22,23 @@ RadioTaskParams *receiverParams;
 extern Preferences prefs;
 extern uint8_t ledsBrightness;
 Menu receivedSignalsMenu;
+Menu saveFileMenu;
 SimpleList <RFMessage> *receivedMessages;
 int selectedSignalIndex = 0;
 extern int row;
 extern Menu* currentMenu;
+String saveFileName = "";
 
 void radio_receive_onStart() {
     onSelectedMenu = false;
     receivedMessages = new SimpleList<RFMessage>;
     createMenu(&receivedSignalsMenu, NULL, [](){
         addMenuNode(&receivedSignalsMenu, &REPLAY_ICON, MENU_ITEM_REPLAY, [](){ replaySignal(); });
-        addMenuNode(&receivedSignalsMenu, &SAVE_ICON, MENU_ITEM_SAVE, [](){ Serial.println("Save signal");}/* TODO: Implement save functionality */);
+        addMenuNode(&receivedSignalsMenu, &SAVE_ICON, MENU_ITEM_SAVE, &saveFileMenu);
+    });
+    createMenu(&saveFileMenu, &receivedSignalsMenu, []() {
+        addMenuNode(&saveFileMenu, [](){ return "Name: " + saveFileName; }, [](){ startKeyboard(&saveFileName); /* click() */});
+        addMenuNode(&saveFileMenu, "Accept", &saveSignal);
     });
     emptyList = true;
     receiverParams = (RadioTaskParams *) malloc(sizeof(RadioTaskParams));
@@ -44,6 +52,7 @@ void radio_receive_onStart() {
     sendNeopixelConfig(NeopixelConfiguration{FIXED_COLOR, ledsBrightness, {0x000000ff,0x000000ff,0x000000ff,0x000000ff}});
     xTaskCreatePinnedToCore(radio_task, "RadioReceiverWorker", 2048, receiverParams, 5, &radioReceiverTaskHandle, 1);
     receivedSignalsMenu.build();
+    saveFileMenu.build();
 }
 
 void radio_receive_onStop() {
@@ -52,8 +61,7 @@ void radio_receive_onStop() {
     vQueueDelete(queue);
 }
 
-void radio_receive_onDraw(U8G2 *u8g2) {
-    // messy and shitty code for testing, TODO: implement properly
+void radio_receive_onDraw(U8G2 *u8g2) {    
     RFMessage msg;
     u8g2->setDrawColor(1);
     if (onSelectedMenu) {
@@ -77,8 +85,9 @@ void radio_receive_onDraw(U8G2 *u8g2) {
     }
 }
 void radio_receive_onEvent(int evt) {
+    /*
     if (evt == BTN_BACK) {
-        if (onSelectedMenu) {
+        if (onSelectedMenu && currentMenu->parentMenu == NULL) {
             onSelectedMenu = false;
         } else {
             radio_receive_onStop();
@@ -89,6 +98,7 @@ void radio_receive_onEvent(int evt) {
     } else if (evt == BTN_OK) {
         if (receivedMessages->size() > 0 && !onSelectedMenu) {
             onSelectedMenu = true;
+            receivedSignalsMenu.selected = 0;
         } else if (onSelectedMenu) {
             receivedSignalsMenu.list->get(receivedSignalsMenu.selected).click();
         }
@@ -109,6 +119,7 @@ void radio_receive_onEvent(int evt) {
             if (selectedSignalIndex >= receivedMessages->size()) selectedSignalIndex = receivedMessages->size() - 1;
         } 
     } 
+        */
 }
 
 void drawReceivedSignalsList(U8G2 *u8g2) {
@@ -169,6 +180,20 @@ void replaySignal() {
     xTaskNotify(radioReceiverTaskHandle, RADIO_REPLAY_SIGNAL, eSetValueWithOverwrite);
     xQueueSend(queue, &msg, 0);
     showPopupMenu("Signal replayed!");
+}
+
+void saveSignal() {
+    if (receivedMessages->size() == 0) return;
+    RFMessage msg = receivedMessages->get(selectedSignalIndex);
+    msg.frequency = receiverParams->frequency;
+    msg.preset = receiverParams->preset;
+    startKeyboard(&saveFileName);
+    bool result = FileUtils::save(SIMPLE_TRANSCEIVER_PATH, saveFileName, (uint8_t*)&msg, sizeof(RFMessage));
+    if (result) {
+        showPopupMenu("Saved!");
+    } else {
+        showPopupMenu("Error.");
+    }
 }
 
 App app_radio_receive = {

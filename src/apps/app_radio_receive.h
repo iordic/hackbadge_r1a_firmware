@@ -7,4 +7,5 @@
 
 void drawReceivedSignalsList(U8G2 *u8g2);
 void replaySignal();
+void saveSignal();
 #endif

@@ -17,6 +17,8 @@ typedef struct {
   unsigned long value;
   unsigned int length;
   unsigned int protocol;
+  int frequency;
+  int preset;
 } RFMessage;
 
 void radio_task(void *pv);
