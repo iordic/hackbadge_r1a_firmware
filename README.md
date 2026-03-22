@@ -5,7 +5,8 @@ Personal custom firmware for the Hackbat badge ([hackbadge_r1a](https://github.c
 # Credits
 - The OLED UI uses the [U8g2](https://github.com/olikraus/u8g2) library.  
 - The menu system is a modification of the one from [SpacehuhnTech/esp8266_deauther](https://github.com/SpacehuhnTech/esp8266_deauther); the `SimpleList` class for creating dynamic lists is also adapted from there.  
-- The Snake game is adapted from [johnpathe/arduinoSnake](https://github.com/johnpathe/arduinoSnake).  
+- The Snake game is adapted from [johnpathe/arduinoSnake](https://github.com/johnpathe/arduinoSnake).
+- The keyboard on screen is adapted from [skr-electronics-lab/OLEDKeyboard](https://github.com/skr-electronics-lab/OLEDKeyboard).
 - Graphic animations were implemented using classes from [L33t-dot-UK/U8g2_Tutorials](https://github.com/L33t-dot-UK/U8g2_Tutorials).  
 - The CC1101 driver library is a personal modification of [LSatan/SmartRC-CC1101-Driver-Lib](https://github.com/LSatan/SmartRC-CC1101-Driver-Lib).
 - CC1101 preset configurations are taken from flipper zero firmware.

@@ -1,6 +1,5 @@
 #include <Arduino.h>
 #include <Wire.h>
-#include <OneButton.h>
 
 #include "config/io_config.h"
 #include "tasks/ui_task.h"
