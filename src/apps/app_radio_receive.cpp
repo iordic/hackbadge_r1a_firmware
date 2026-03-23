@@ -1,18 +1,17 @@
 #include "app.h"
 #include "app_radio_receive.h"
 #include "literals.h"
-#include "app.h"
 #include "app_menu.h"
 
 #include "config/constants.h"
+#include "config/sprites.h"
+#include "utils/menu.h"
+#include "utils/radio_utils.h"
+#include "utils/file_utils.h"
+#include "devices/display.h"
 #include "tasks/ui_task.h"
 #include "tasks/leds_task.h"
 #include "tasks/radio_task.h"
-#include "devices/display.h"
-#include "utils/radio_utils.h"
-#include "config/sprites.h"
-#include "utils/menu.h"
-#include "utils/file_utils.h"
 
 extern App app_menu;
 QueueHandle_t queue;
@@ -62,10 +61,10 @@ void radio_receive_onStop() {
     currentMenu = NULL;
 }
 
-void radio_receive_onDraw(U8G2 *u8g2) {    
+void radio_receive_onDraw(U8G2 *u8g2) {
     RFMessage msg;
-    u8g2->setDrawColor(1);
     if (receivedMessages->size() == 0) {
+        u8g2->setDrawColor(1);
         u8g2->clearBuffer();
         u8g2->drawXBM(3, 0, bat_rx_width, bat_rx_height, bat_rx_bits);
         u8g2->setFont(u8g2_font_7x14_tr);

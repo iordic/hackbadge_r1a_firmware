@@ -24,6 +24,9 @@ const uint16_t SIMPLE_TRANSMIT_ICON PROGMEM = 0x00a4;
 const uint16_t HEART_ICON PROGMEM = 0x00b7;
 const uint16_t ABOUT_ICON PROGMEM = 0x00bc;
 const uint16_t SAVE_ICON PROGMEM = 0x0061;
+const uint16_t DELETE_ICON PROGMEM = 0x010f;
+const uint16_t READ_FILE_ICON PROGMEM = 0x0092;
+const uint16_t PLAY_ICON PROGMEM = 0x00D3;
 const uint16_t REPLAY_ICON PROGMEM = 0x00cc;
 const uint16_t USER_ICON PROGMEM = 0x00e5;
 
@@ -46,7 +49,10 @@ const char MENU_ITEM_WIFI_BEACON_SPAM[] PROGMEM = "Beacon Spam";
 const char MENU_ITEM_ABOUT[] PROGMEM = "About";
 const char MENU_ITEM_PROFILE[] PROGMEM = "Profile";
 const char MENU_ITEM_SAVE[] PROGMEM = "Save";
+const char MENU_ITEM_DELETE[] PROGMEM = "Delete";
+const char MENU_ITEM_READ_FILE[] PROGMEM = "Read File";
 const char MENU_ITEM_REPLAY[] PROGMEM = "Replay";
+const char MENU_ITEM_SEND_SIGNAL[] PROGMEM = "Send Signal";
 const char MENU_ITEM_NOT_IMPLEMENTED[] PROGMEM = "WIP. Coming soon!";
 
 // Rickroll SPAM Backon SSIDs

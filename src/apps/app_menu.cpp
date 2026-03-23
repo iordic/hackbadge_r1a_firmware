@@ -15,6 +15,7 @@ extern App app_jammer;
 extern App app_radio_receive;
 extern App app_wifi_beacon_spam;
 extern App app_about;
+extern App app_simple_tx;
 
 Menu mainMenu;
 // Submenus
@@ -82,7 +83,7 @@ void menu_onStart() {
     // Radio transmit submenu
     createMenu(&radioTransmitMenu, &subghzMenu, []() {
         addMenuNode(&radioTransmitMenu, &MEGAPHONE_ICON, MENU_ITEM_JAMMER, &subghzMenu, &app_jammer);
-        addMenuNode(&radioTransmitMenu, &SIMPLE_TRANSMIT_ICON, MENU_ITEM_SIMPLE_TX, &subghzMenu, &app_jammer);
+        addMenuNode(&radioTransmitMenu, &SIMPLE_TRANSMIT_ICON, MENU_ITEM_SIMPLE_TX, &subghzMenu, &app_simple_tx);
     });
     // Radio receive submenu
     createMenu(&radioReceiveMenu, &subghzMenu, []() {

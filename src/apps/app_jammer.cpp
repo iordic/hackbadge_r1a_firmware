@@ -19,7 +19,7 @@ extern Preferences prefs;
 extern uint8_t ledsBrightness;
 
 void jammer_onStart() {
-  prefs.begin("config", true);
+  prefs.begin("configuration", true);
   RadioTaskParams *params = (RadioTaskParams *) malloc(sizeof(RadioTaskParams));
   params->operation = START_JAMMER;
   params->callerHandle = xTaskGetCurrentTaskHandle();

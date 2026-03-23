@@ -132,6 +132,7 @@ int drawMenu(U8G2 *u8g2, Menu* menu, int firstItem) {
 }
 
 int drawStaticMenu(U8G2 *u8g2, Menu* menu, int firstItem) {
+    u8g2->setDrawColor(1);
     uint8_t xStartWritting = 0;
     u8g2->clearBuffer();
     const int visibleCount = 4;  // número de líneas visibles en pantalla
@@ -185,6 +186,7 @@ int drawStaticMenu(U8G2 *u8g2, Menu* menu, int firstItem) {
 }
 
 int drawDynamicList(U8G2 *u8g2, Menu* menu, int firstItem) {
+    u8g2->setDrawColor(1);
     /* TODO: unify redundant code */
     int tmpLen, visibleCount = 3;  // número de líneas visibles en pantalla
     String tmp;

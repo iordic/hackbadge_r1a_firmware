@@ -11,13 +11,13 @@ extern Preferences prefs;
 UserInfo userInfo;
 
 void splash_onStart() {
-    prefs.begin("splash", false);
+    prefs.begin("configuration", false);
     userInfo.name = prefs.getString("user_name", "John Doe");
     userInfo.nick = prefs.getString("user_nick", "johndoe");
 }
 
 void splash_onStop() {
-   // prefs.end();
+    prefs.end();
 }
 
 void splash_onEvent(int evt) {
