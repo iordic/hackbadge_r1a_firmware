@@ -1,14 +1,17 @@
 #include "file_utils.h"
 
 bool FileUtils::begin() {
-    return LittleFS.begin(true);
+    if(LittleFS.begin(true)) {
+        Serial.printf("LittleFS mounted! Used: %u/%u bytes\n", LittleFS.usedBytes(), LittleFS.totalBytes());
+        return true;
+    }
+    return false;
 }
 
 void FileUtils::_mkdirs(String path) {
     String currentPath = "";
     int start = 0;
     int end = path.indexOf('/', 1);
-
     while (end != -1) {
         currentPath = path.substring(0, end);
         if (!LittleFS.exists(currentPath)) {
@@ -33,6 +36,18 @@ bool FileUtils::save(String path, String fileName, uint8_t* data, size_t size) {
     size_t written = file.write(data, size);
     file.close();
     return written == size;
+}
+
+bool FileUtils::remove(String path, String fileName) {
+    String full_path = path;
+    if (path.length() > 0 && !full_path.endsWith("/")) {
+        full_path += "/";
+    }
+    full_path += fileName;
+    if (!LittleFS.exists(full_path)) {
+        return false; 
+    }
+    return LittleFS.remove(full_path);
 }
 
 bool FileUtils::load(String path, String fileName, uint8_t* data, size_t size) {

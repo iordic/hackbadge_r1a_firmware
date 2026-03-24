@@ -9,6 +9,7 @@ class FileUtils {
     public:
         static bool begin();
         static bool save(String path, String fileName, uint8_t* data, size_t size);
+        static bool remove(String path, String fileName);
         static bool load(String path, String fileName, uint8_t* data, size_t size);
         static SimpleList<String>* listFiles(String path);
         static int getFileSize(String path, String fileName);

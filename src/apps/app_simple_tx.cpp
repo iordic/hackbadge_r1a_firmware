@@ -39,7 +39,7 @@ void simple_tx_onStart() {
     createMenu(&simpleTxFileMenu, &mainListSimpleTxFiles, [](){
         addMenuNode(&simpleTxFileMenu, &PLAY_ICON, MENU_ITEM_SEND_SIGNAL, [](){ simple_tx_sendSignal(); });
         addMenuNode(&simpleTxFileMenu, &READ_FILE_ICON, MENU_ITEM_READ_FILE, [](){loadFileContent(); showingFileContent = true;});
-        addMenuNode(&simpleTxFileMenu, &DELETE_ICON, MENU_ITEM_DELETE, NULL);
+        addMenuNode(&simpleTxFileMenu, &DELETE_ICON, MENU_ITEM_DELETE, [](){removeSelectedTxFile();});
     });
     mainListSimpleTxFiles.build();
     simpleTxFileMenu.build();
@@ -51,6 +51,15 @@ void simple_tx_onStop() {
     currentMenu = NULL;
 }
 void simple_tx_onEvent(int evt) {
+    if (mainListSimpleTxFiles.list->isEmpty()) {
+        if (evt == BTN_BACK) {
+            simple_tx_onStop();
+            extern App *currentApp;
+            currentApp = &app_menu;
+            currentApp->onStart();            
+        }
+        return;
+    }
     if (showingFileContent) {
         if (evt == BTN_BACK) {
             showingFileContent = false;
@@ -72,6 +81,16 @@ void simple_tx_onEvent(int evt) {
     }
 }
 void simple_tx_onDraw(U8G2 *u8g2) {
+    if (mainListSimpleTxFiles.list->isEmpty()) {
+        u8g2->clearBuffer();
+        u8g2->setDrawColor(1);
+        u8g2->setFont(u8g2_font_fub30_t_symbol);
+        u8g2->drawStr(25, 40, "404");
+        u8g2->setFont(u8g2_font_7x14_mr);
+        u8g2->drawStr(10, 54, "Folder is empty.");
+        u8g2->sendBuffer();
+        return;
+    }
     if (showingFileContent) {
         u8g2->clearBuffer();
         u8g2->setDrawColor(1);
@@ -92,9 +111,16 @@ void simple_tx_onDraw(U8G2 *u8g2) {
 }
 
 void fillSimpleTxFilesMenu(Menu* menu, SimpleList<String>* &files) {
+    menu->list->clear();
+    if (files != nullptr) {
+        delete files; 
+        files = nullptr;
+    }
     files = FileUtils::listFiles(SIMPLE_TRANSCEIVER_PATH);
-    for (int i = 0; i < files->size(); i++) {
-        addMenuNode(menu, files->get(i), &app_menu, &simpleTxFileMenu);
+    if (files != nullptr) {
+        for (int i = 0; i < files->size(); i++) {
+            addMenuNode(menu, files->get(i), &app_menu, &simpleTxFileMenu);
+        }
     }
 }
 
@@ -131,6 +157,18 @@ void loadFileContent() {
     currentFileContent.preset = getPresetNameFromEnum(msg.preset);
     currentFileContent.protocol = msg.protocol;
     currentFileContent.value = String(msg.value, HEX);
+}
+
+void removeSelectedTxFile() {
+    String deleteFile = savedSimpleTxFiles->get(mainListSimpleTxFiles.selected);
+    if (FileUtils::remove(SIMPLE_TRANSCEIVER_PATH, deleteFile)) {
+        showPopupMenu("Archivo borrado");
+        savedSimpleTxFiles->remove(mainListSimpleTxFiles.selected);
+        fillSimpleTxFilesMenu(&mainListSimpleTxFiles, savedSimpleTxFiles);
+    } else {
+        showPopupMenu("Error al borrar");
+    }
+    currentMenu = &mainListSimpleTxFiles;
 }
 
 App app_simple_tx = {

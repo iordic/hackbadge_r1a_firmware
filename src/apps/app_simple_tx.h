@@ -26,4 +26,5 @@ void loadRFMessageFromFile(String fileName, RFMessage* msg);
 void simple_tx_sendSignal();
 void simple_tx_sendSignal(String fileName);
 void loadFileContent();
+void removeSelectedTxFile();
 #endif
