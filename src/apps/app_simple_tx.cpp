@@ -19,6 +19,8 @@ QueueHandle_t simpleTxQueue;
 extern int row;
 SimpleList<String>* savedSimpleTxFiles;
 TaskHandle_t radioTransmitterTaskHandle = NULL;
+bool showingFileContent = false;
+SimpleTxFile currentFileContent;
 
 void simple_tx_onStart() {
     row = 0;
@@ -36,7 +38,7 @@ void simple_tx_onStart() {
     fillSimpleTxFilesMenu(&mainListSimpleTxFiles, savedSimpleTxFiles);
     createMenu(&simpleTxFileMenu, &mainListSimpleTxFiles, [](){
         addMenuNode(&simpleTxFileMenu, &PLAY_ICON, MENU_ITEM_SEND_SIGNAL, [](){ simple_tx_sendSignal(); });
-        addMenuNode(&simpleTxFileMenu, &READ_FILE_ICON, MENU_ITEM_READ_FILE, NULL);
+        addMenuNode(&simpleTxFileMenu, &READ_FILE_ICON, MENU_ITEM_READ_FILE, [](){loadFileContent(); showingFileContent = true;});
         addMenuNode(&simpleTxFileMenu, &DELETE_ICON, MENU_ITEM_DELETE, NULL);
     });
     mainListSimpleTxFiles.build();
@@ -49,22 +51,44 @@ void simple_tx_onStop() {
     currentMenu = NULL;
 }
 void simple_tx_onEvent(int evt) {
-  if (evt == BTN_BACK) {
-      currentMenu->list->get(currentMenu->selected).hold();
-  } else if (evt == BTN_OK) {
-      currentMenu->list->get(currentMenu->selected).click();
-  } else if (evt == BTN_UP) {
-      currentMenu->selected--;
-  } else if (evt == BTN_DOWN) {
-      currentMenu->selected++;
-  } else if (evt == BTN_LEFT) {
-      currentMenu->list->get(currentMenu->selected).left();
-  } else if (evt == BTN_RIGHT) {
-      currentMenu->list->get(currentMenu->selected).right();
-  }
+    if (showingFileContent) {
+        if (evt == BTN_BACK) {
+            showingFileContent = false;
+        }
+        return;
+    }
+    if (evt == BTN_BACK) {
+        currentMenu->list->get(currentMenu->selected).hold();
+    } else if (evt == BTN_OK) {
+        currentMenu->list->get(currentMenu->selected).click();
+    } else if (evt == BTN_UP) {
+        currentMenu->selected--;
+    } else if (evt == BTN_DOWN) {
+        currentMenu->selected++;
+    } else if (evt == BTN_LEFT) {
+        currentMenu->list->get(currentMenu->selected).left();
+    } else if (evt == BTN_RIGHT) {
+        currentMenu->list->get(currentMenu->selected).right();
+    }
 }
 void simple_tx_onDraw(U8G2 *u8g2) {
-  row = drawMenu(u8g2, currentMenu, row);
+    if (showingFileContent) {
+        u8g2->clearBuffer();
+        u8g2->setDrawColor(1);
+        u8g2->setFont(u8g2_font_ncenB08_tr);
+        u8g2->drawStr(0, 8, ("[File " + currentFileContent.name + " - " + String(currentFileContent.size) + " bytes]").c_str());
+        u8g2->setFont(u8g2_font_t0_12_mr);
+        u8g2->drawStr(0, 22, "Captured value:");
+        u8g2->setFont(u8g2_font_7x14_mr);
+        u8g2->drawStr(5, 35, (currentFileContent.value + " / " + String(currentFileContent.bits) + "bits").c_str());
+        u8g2->setFont(u8g2_font_t0_12_mr);
+        u8g2->drawStr(0, 46, "with presets:");
+        u8g2->setFont(u8g2_font_7x14_mr);
+        u8g2->drawStr(5, 60, String(currentFileContent.frequency + " MHz " + currentFileContent.preset).c_str());
+        u8g2->sendBuffer();
+    } else {
+        row = drawMenu(u8g2, currentMenu, row);
+    }
 }
 
 void fillSimpleTxFilesMenu(Menu* menu, SimpleList<String>* &files) {
@@ -94,6 +118,19 @@ void loadRFMessageFromFile(String fileName, RFMessage* msg) {
         return;
     }
     Serial.println("File loaded: " + String(fileName));
+}
+
+void loadFileContent() {
+    RFMessage msg;
+    String fileName = savedSimpleTxFiles->get(mainListSimpleTxFiles.selected);
+    currentFileContent.name = fileName;
+    loadRFMessageFromFile(fileName, &msg);
+    currentFileContent.size = FileUtils::getFileSize(SIMPLE_TRANSCEIVER_PATH, fileName);
+    currentFileContent.bits = msg.length;
+    currentFileContent.frequency = String(getFrequencyFromEnum(msg.frequency));
+    currentFileContent.preset = getPresetNameFromEnum(msg.preset);
+    currentFileContent.protocol = msg.protocol;
+    currentFileContent.value = String(msg.value, HEX);
 }
 
 App app_simple_tx = {

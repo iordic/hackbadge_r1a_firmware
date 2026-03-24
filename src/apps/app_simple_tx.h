@@ -11,8 +11,19 @@
 #include "tasks/radio_task.h"
 
 
+typedef struct {
+    String name;
+    String value;
+    int protocol;
+    int bits;
+    String frequency;
+    String preset;
+    int size;
+} SimpleTxFile;
+
 void fillSimpleTxFilesMenu(Menu* menu, SimpleList<String>* &files);
 void loadRFMessageFromFile(String fileName, RFMessage* msg);
 void simple_tx_sendSignal();
 void simple_tx_sendSignal(String fileName);
+void loadFileContent();
 #endif

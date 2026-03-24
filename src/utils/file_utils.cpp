@@ -48,6 +48,19 @@ bool FileUtils::load(String path, String fileName, uint8_t* data, size_t size) {
     return readed == size;
 }
 
+int FileUtils::getFileSize(String path, String fileName) {
+    String full_path = path;
+    if (!full_path.endsWith("/"))
+        full_path += "/";
+    full_path += fileName;
+    if (!LittleFS.exists(full_path)) return 0;
+    File file = LittleFS.open(full_path, "r");
+    if (!file) return 0;
+    int size = file.size();
+    file.close();
+    return size;
+}
+
 SimpleList<String>* FileUtils::listFiles(String path) {
     // TODO: create pagination
     SimpleList<String>* fileList = new SimpleList<String>();

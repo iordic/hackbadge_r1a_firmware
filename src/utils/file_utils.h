@@ -11,6 +11,7 @@ class FileUtils {
         static bool save(String path, String fileName, uint8_t* data, size_t size);
         static bool load(String path, String fileName, uint8_t* data, size_t size);
         static SimpleList<String>* listFiles(String path);
+        static int getFileSize(String path, String fileName);
     private:
         static void _mkdirs(String path);
 };
