@@ -26,4 +26,6 @@ void loadConfiguration(int frequencyOption, int preset);
 void lockJamming();
 void radioReceiveSignal();
 void replaySignal(RCSwitch *mySwitch, RFMessage msg);
+void sendSignal();
+void sendSignal(RCSwitch *mySwitch, RFMessage msg);
 #endif

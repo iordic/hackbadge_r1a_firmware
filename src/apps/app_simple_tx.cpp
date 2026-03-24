@@ -14,26 +14,28 @@ extern Menu* currentMenu;
 extern App app_menu;
 Menu mainListSimpleTxFiles;
 Menu simpleTxFileMenu;
-RadioTaskParams *simpleTxReceiverParams;
+RadioTaskParams *simpleTransmitterParams;
 QueueHandle_t simpleTxQueue;
 extern int row;
-SimpleList<File>* savedSimpleTxFiles;
+SimpleList<String>* savedSimpleTxFiles;
+TaskHandle_t radioTransmitterTaskHandle = NULL;
 
 void simple_tx_onStart() {
     row = 0;
     currentMenu = &mainListSimpleTxFiles;
     prefs.begin("configuration", true);
-    simpleTxReceiverParams = (RadioTaskParams *) malloc(sizeof(RadioTaskParams));
-    simpleTxReceiverParams->operation = RECEIVE_SIGNAL;
-    simpleTxReceiverParams->frequency = prefs.getUChar("frequency", FREQ_433MHZ);
-    simpleTxReceiverParams->preset = prefs.getUChar("preset", PRESET_AM650);
+    simpleTransmitterParams = (RadioTaskParams *) malloc(sizeof(RadioTaskParams));
+    simpleTransmitterParams->operation = SEND_SIGNAL;
+    simpleTransmitterParams->frequency = prefs.getUChar("frequency", FREQ_433MHZ);
+    simpleTransmitterParams->preset = prefs.getUChar("preset", PRESET_AM650);
     simpleTxQueue = xQueueCreate(8, sizeof(RFMessage));
-    simpleTxReceiverParams->queueHandle = simpleTxQueue;
-    simpleTxReceiverParams->callerHandle = xTaskGetCurrentTaskHandle();
-    createDynamicMenu(&mainListSimpleTxFiles, NULL, [](){return String(getFrequencyFromEnum(simpleTxReceiverParams->frequency)) + "MHz " + getPresetNameFromEnum(simpleTxReceiverParams->preset);}, [](){});
+    simpleTransmitterParams->queueHandle = simpleTxQueue;
+    simpleTransmitterParams->callerHandle = xTaskGetCurrentTaskHandle();
+    xTaskCreatePinnedToCore(radio_task, "RadioTransmitterWorker", 2048, simpleTransmitterParams, 5, &radioTransmitterTaskHandle, 1);
+    createDynamicMenu(&mainListSimpleTxFiles, NULL, [](){return String(getFrequencyFromEnum(simpleTransmitterParams->frequency)) + "MHz " + getPresetNameFromEnum(simpleTransmitterParams->preset);}, [](){});
     fillSimpleTxFilesMenu(&mainListSimpleTxFiles, savedSimpleTxFiles);
     createMenu(&simpleTxFileMenu, &mainListSimpleTxFiles, [](){
-        addMenuNode(&simpleTxFileMenu, &PLAY_ICON, MENU_ITEM_SEND_SIGNAL, NULL);
+        addMenuNode(&simpleTxFileMenu, &PLAY_ICON, MENU_ITEM_SEND_SIGNAL, [](){ simple_tx_sendSignal(); });
         addMenuNode(&simpleTxFileMenu, &READ_FILE_ICON, MENU_ITEM_READ_FILE, NULL);
         addMenuNode(&simpleTxFileMenu, &DELETE_ICON, MENU_ITEM_DELETE, NULL);
     });
@@ -42,6 +44,7 @@ void simple_tx_onStart() {
 }
 
 void simple_tx_onStop() {
+    xTaskNotify(radioTransmitterTaskHandle, RADIO_STOP, eSetValueWithOverwrite);
     vQueueDelete(simpleTxQueue);
     currentMenu = NULL;
 }
@@ -64,11 +67,33 @@ void simple_tx_onDraw(U8G2 *u8g2) {
   row = drawMenu(u8g2, currentMenu, row);
 }
 
-void fillSimpleTxFilesMenu(Menu* menu, SimpleList<File>* files) {
+void fillSimpleTxFilesMenu(Menu* menu, SimpleList<String>* &files) {
     files = FileUtils::listFiles(SIMPLE_TRANSCEIVER_PATH);
     for (int i = 0; i < files->size(); i++) {
-        addMenuNode(menu, files->get(i).name(), &app_menu, &simpleTxFileMenu);
+        addMenuNode(menu, files->get(i), &app_menu, &simpleTxFileMenu);
     }
+}
+
+void simple_tx_sendSignal() {
+    String fileName = savedSimpleTxFiles->get(mainListSimpleTxFiles.selected);
+    Serial.println("Selected file: " + fileName);
+    simple_tx_sendSignal(fileName);
+}
+
+void simple_tx_sendSignal(String fileName) {
+    RFMessage msg;
+    loadRFMessageFromFile(fileName, &msg);
+    xTaskNotify(radioTransmitterTaskHandle, SEND_SIGNAL, eSetValueWithOverwrite);
+    xQueueSend(simpleTxQueue, &msg, 0);
+    showPopupMenu("Signal sent!");
+}
+
+void loadRFMessageFromFile(String fileName, RFMessage* msg) {
+    if (!FileUtils::load(SIMPLE_TRANSCEIVER_PATH, fileName, (uint8_t*)msg, sizeof(RFMessage))) {
+        Serial.println("Error reading file.");
+        return;
+    }
+    Serial.println("File loaded: " + String(fileName));
 }
 
 App app_simple_tx = {

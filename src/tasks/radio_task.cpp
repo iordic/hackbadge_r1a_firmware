@@ -4,30 +4,34 @@
 #include "devices/radio.h"
 #include "utils/radio_utils.h"
 
+extern TaskHandle_t radioTransmitterTaskHandle; 
+
 ELECHOUSE_CC1101 *cc1101;
 BaseType_t xRadioResult;
 uint32_t radioNotificationValue;
 QueueHandle_t radioQueue;
 
-void radio_task(void *pv) {
+void radio_task(void *pv) {extern TaskHandle_t radioTransmitterTaskHandle; 
     cc1101 = radio_get();
     RadioTaskParams *params = (RadioTaskParams *) pv;
     TaskHandle_t caller = params->callerHandle;   
     radioQueue = params->queueHandle;
     cc1101->init();
+    loadConfiguration(params->frequency, params->preset);
+
     switch (params->operation) {
     case CHECK:
         xTaskNotify(caller, cc1101->getCC1101(), eSetValueWithOverwrite);
         break;
     case START_JAMMER:
-        loadConfiguration(params->frequency, params->preset);
-        cc1101->setTx();
         lockJamming();
         break;
     case RECEIVE_SIGNAL:
-        loadConfiguration(params->frequency, params->preset);
-        cc1101->setRx();
         radioReceiveSignal();
+        break;
+    case SEND_SIGNAL:
+        sendSignal();
+        radioTransmitterTaskHandle = NULL; 
         break;
     default:
         break;
@@ -73,6 +77,7 @@ void loadConfiguration(int frequencyOption, int preset) {
 }
 
 void lockJamming() {
+    cc1101->setTx();
     pinMode(CC1101_GDO0, OUTPUT);
     digitalWrite(CC1101_GDO0, HIGH);
     Serial.println("Jamming started.");
@@ -83,6 +88,7 @@ void lockJamming() {
 
 void radioReceiveSignal() {
     RFMessage msg;
+    cc1101->setRx();
     pinMode(CC1101_GDO0, INPUT);
     RCSwitch mySwitch = RCSwitch();
     mySwitch.enableReceive(CC1101_GDO0);
@@ -99,7 +105,7 @@ void radioReceiveSignal() {
         }
         xRadioResult = xTaskNotifyWait(0, 0, &radioNotificationValue, 0);
         if (xRadioResult == pdTRUE && radioNotificationValue == RADIO_STOP)  break;
-        if (xRadioResult == pdTRUE && radioNotificationValue == RADIO_REPLAY_SIGNAL) {
+        if (xRadioResult == pdTRUE && radioNotificationValue == REPLAY_SIGNAL) {
             RFMessage sendMsg;
             xQueueReceive(radioQueue, &sendMsg, portMAX_DELAY);
             replaySignal(&mySwitch, sendMsg);
@@ -108,22 +114,39 @@ void radioReceiveSignal() {
     }
 }
 
+void sendSignal() {
+    pinMode(CC1101_GDO0, OUTPUT);
+    RFMessage msg;
+    RCSwitch mySwitch = RCSwitch();
+    mySwitch.enableTransmit(CC1101_GDO0);
+    while (true) {
+        xRadioResult = xTaskNotifyWait(0, 0, &radioNotificationValue, 0);
+        if (xRadioResult == pdTRUE && radioNotificationValue == SEND_SIGNAL) {
+            xQueueReceive(radioQueue, &msg, portMAX_DELAY);
+            sendSignal(&mySwitch, msg);
+        } else if (xRadioResult == pdTRUE && radioNotificationValue == RADIO_STOP)  break;
+        vTaskDelay(10 / portTICK_PERIOD_MS);
+    }
+    mySwitch.disableTransmit();
+}
+
 void replaySignal(RCSwitch *mySwitch, RFMessage msg) {
     Serial.println("Replaying signal...");
-    // 1. Preparar para Transmitir
-    mySwitch->disableReceive();          // Detener el sniffing
-    detachInterrupt(digitalPinToInterrupt(CC1101_GDO0)); // Limpieza manual por seguridad
+    mySwitch->disableReceive();
+    detachInterrupt(digitalPinToInterrupt(CC1101_GDO0));
+    sendSignal(mySwitch, msg);
+    mySwitch->disableTransmit(); 
+    cc1101->setRx();
+    pinMode(CC1101_GDO0, INPUT);
+    mySwitch->enableReceive(digitalPinToInterrupt(CC1101_GDO0)); 
+    Serial.println("Volviendo a modo RX...");
+}
+
+void sendSignal(RCSwitch *mySwitch, RFMessage msg) {
     cc1101->setTx();
     pinMode(CC1101_GDO0, OUTPUT);
     mySwitch->enableTransmit(CC1101_GDO0);
     mySwitch->setRepeatTransmit(10);
     mySwitch->setProtocol(msg.protocol);
     mySwitch->send(msg.value, msg.length);
-    // 2. Limpieza Post-Transmisión
-    mySwitch->disableTransmit(); 
-    // 3. Volver a modo Recepción
-    cc1101->setRx();
-    pinMode(CC1101_GDO0, INPUT);         // Volver a poner el pin como entrada
-    mySwitch->enableReceive(digitalPinToInterrupt(CC1101_GDO0)); 
-    Serial.println("Volviendo a modo RX...");
 }

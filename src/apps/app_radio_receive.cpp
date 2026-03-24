@@ -106,7 +106,7 @@ void radio_receive_onEvent(int evt) {
 void replaySignal() {
     if (receivedMessages->size() == 0) return;
     RFMessage msg = receivedMessages->get(mainListReceivedSignals.selected);
-    xTaskNotify(radioReceiverTaskHandle, RADIO_REPLAY_SIGNAL, eSetValueWithOverwrite);
+    xTaskNotify(radioReceiverTaskHandle, REPLAY_SIGNAL, eSetValueWithOverwrite);
     xQueueSend(queue, &msg, 0);
     showPopupMenu("Signal replayed!");
 }
