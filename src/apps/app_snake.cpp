@@ -37,9 +37,20 @@ bool inputLock = false;
 void snake_onStart() {
   restartGame();
 }
-void snake_onStop() {}
+void snake_onStop() {
+  extern App *currentApp;
+  currentApp = &app_menu;
+  currentApp->onStart();
+}
 
 void snake_onEvent(int evt) {
+  if (evt == BTN_BACK) {
+    snake_onStop();
+  }
+  if (gameOver) {
+    if (evt != BTN_NONE) restartGame();
+    return;
+  }
     // buttons change heading, up button for heading=up and so on
   if ( inputLock == false && heading!=HEAD_DOWN && evt == BTN_UP) {
     heading = HEAD_UP;
@@ -64,11 +75,6 @@ void snake_onEvent(int evt) {
   // reset game to starting state
   if (evt == BTN_OK) {
     restartGame();
-  }
-  if (evt == BTN_BACK) {
-        extern App *currentApp;
-        currentApp = &app_menu;
-        currentApp->onStart();
   }
 }
 
@@ -135,14 +141,12 @@ void logic() {
     //detect if snake head touched snake body
     if ( onSnakeBody(snakeHead[0],snakeHead[1]) ) {
       heading=HEAD_STOP;
-      restartGame();
       gameOver = true;
     }
     
     //detect if snake head left game area
     if ( snakeHead[0] < 0 || snakeHead[0] > 15 || snakeHead[1] < 0 || snakeHead[1] > 15 ) {
       heading=HEAD_STOP;
-      restartGame();
       gameOver = true;
     }
   }
@@ -185,10 +189,7 @@ void snake_onDraw(U8G2 *u8g2) {
     u8g2->drawStr(70,40, "Score: "); // score stuff
     itoa(snakeLength-5, scoreText, 10);
     u8g2->drawStr(98,40,  scoreText);
-
-  if (gameOver) {
-    u8g2->drawStr(70,50, "You Lose!"); // show 'you lose'
-  }
+    if (gameOver) u8g2->drawStr(70,50, "You Lose!"); // show 'you lose'
   } while ( u8g2->nextPage() );
 }
 
