@@ -81,9 +81,9 @@ void simple_tx_onEvent(int evt) {
     }
 }
 void simple_tx_onDraw(U8G2 *u8g2) {
+    u8g2->clearBuffer();
+    u8g2->setDrawColor(1);
     if (mainListSimpleTxFiles.list->isEmpty()) {
-        u8g2->clearBuffer();
-        u8g2->setDrawColor(1);
         u8g2->setFont(u8g2_font_fub30_t_symbol);
         u8g2->drawStr(25, 40, "404");
         u8g2->setFont(u8g2_font_7x14_mr);
@@ -92,8 +92,6 @@ void simple_tx_onDraw(U8G2 *u8g2) {
         return;
     }
     if (showingFileContent) {
-        u8g2->clearBuffer();
-        u8g2->setDrawColor(1);
         u8g2->setFont(u8g2_font_ncenB08_tr);
         u8g2->drawStr(0, 8, ("[File " + currentFileContent.name + " - " + String(currentFileContent.size) + " bytes]").c_str());
         u8g2->setFont(u8g2_font_t0_12_mr);
@@ -104,10 +102,10 @@ void simple_tx_onDraw(U8G2 *u8g2) {
         u8g2->drawStr(0, 46, "with presets:");
         u8g2->setFont(u8g2_font_7x14_mr);
         u8g2->drawStr(5, 60, String(currentFileContent.frequency + " MHz " + currentFileContent.preset).c_str());
-        u8g2->sendBuffer();
     } else {
         row = drawMenu(u8g2, currentMenu, row);
     }
+    u8g2->sendBuffer();
 }
 
 void fillSimpleTxFilesMenu(Menu* menu, SimpleList<String>* &files) {

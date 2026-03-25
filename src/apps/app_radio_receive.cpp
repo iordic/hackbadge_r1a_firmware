@@ -9,6 +9,7 @@
 #include "utils/radio_utils.h"
 #include "utils/file_utils.h"
 #include "devices/display.h"
+#include "devices/radio.h"
 #include "tasks/ui_task.h"
 #include "tasks/leds_task.h"
 #include "tasks/radio_task.h"
@@ -71,15 +72,14 @@ void radio_receive_onStop() {
 
 void radio_receive_onDraw(U8G2 *u8g2) {
     RFMessage msg;
+    u8g2->setDrawColor(1);
+    u8g2->clearBuffer();
     if (receivedMessages->size() == 0) {
-        u8g2->setDrawColor(1);
-        u8g2->clearBuffer();
         u8g2->drawXBM(3, 0, bat_rx_width, bat_rx_height, bat_rx_bits);
         u8g2->setFont(u8g2_font_7x14_tr);
         u8g2->drawStr(40, 10, "Listening at");
         u8g2->drawStr(55, 25, (String(getFrequencyFromEnum(receiverParams->frequency)) + "MHz ").c_str());
         u8g2->drawStr(80, 40, getPresetNameFromEnum(receiverParams->preset).c_str());
-        u8g2->sendBuffer();
     } else if (receivedMessages->size() > 0) {
         row = drawMenu(u8g2, currentMenu, row);
     }
@@ -88,6 +88,8 @@ void radio_receive_onDraw(U8G2 *u8g2) {
         String signalLabel = "P" + String(msg.protocol) +" V" + String(msg.value, HEX)+ " L" + String(msg.length);
         addMenuNode(&mainListReceivedSignals, signalLabel, &app_menu, &receivedSignalsMenu);
     }
+    drawRssi(u8g2);
+    u8g2->sendBuffer();
 }
 void radio_receive_onEvent(int evt) {
     if (receivedMessages->size() == 0) {
@@ -132,6 +134,17 @@ void saveSignal() {
     } else {
         showPopupMenu("Error.");
     }
+}
+
+void drawRssi(U8G2 *u8g2) {
+    int receivedRssi = radio_get()->getRssi();
+    int barWidth = 40;
+    u8g2->setDrawColor(1);
+    u8g2->drawBox(85, 59, map(receivedRssi, -100, -11, 0, 40), 5);
+    u8g2->drawFrame(85, 59, barWidth, 5);
+    u8g2->setFont(u8g2_font_tiny5_tr);
+    u8g2->drawStr(70, 64, "rssi");
+    Serial.println(u8g2->getStrWidth("rssi"));
 }
 
 App app_radio_receive = {

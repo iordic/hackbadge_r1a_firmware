@@ -158,7 +158,9 @@ void menu_onEvent(int evt) {
 }
 
 void menu_onDraw(U8G2 *u8g2) {
+    u8g2->clearBuffer();
     row = drawMenu(u8g2, currentMenu, row);
+    u8g2->sendBuffer();
 }
 
 void saveRadioConfig() {

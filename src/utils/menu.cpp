@@ -134,13 +134,10 @@ int drawMenu(U8G2 *u8g2, Menu* menu, int firstItem) {
 int drawStaticMenu(U8G2 *u8g2, Menu* menu, int firstItem) {
     u8g2->setDrawColor(1);
     uint8_t xStartWritting = 0;
-    u8g2->clearBuffer();
     const int visibleCount = 4;  // número de líneas visibles en pantalla
     String tmp;
     int tmpLen;
-
     int total = menu->list->size();
-
     // --- Seguridad: evitar índices fuera de rango ---
     if (menu->selected < 0)
         menu->selected = total - 1; // wrap around to the bottom
@@ -181,7 +178,6 @@ int drawStaticMenu(U8G2 *u8g2, Menu* menu, int firstItem) {
         u8g2->setFont(u8g2_font_7x14_mr);
         u8g2->drawStr(xStartWritting, (i - firstItem + 1) * 16 - 2, menu->list->get(i).getStr().c_str());
     }
-    u8g2->sendBuffer();
     return firstItem;
 }
 
@@ -191,7 +187,6 @@ int drawDynamicList(U8G2 *u8g2, Menu* menu, int firstItem) {
     int tmpLen, visibleCount = 3;  // número de líneas visibles en pantalla
     String tmp;
     int total = menu->list->size();
-    u8g2->clearBuffer();
     u8g2->setFont(u8g2_font_t0_11_tr);
     u8g2->drawStr(0, 8, menu->getTitle().c_str());
     u8g2->drawStr(95, 8, (String(menu->selected + 1) + "/" + String(menu->list->size())).c_str());
@@ -230,7 +225,6 @@ int drawDynamicList(U8G2 *u8g2, Menu* menu, int firstItem) {
         u8g2->setDrawColor(!drawColor);
         u8g2->drawStr(2, (i - firstItem + 2) * 14 - 2, menu->list->get(i).getStr().c_str());
     }
-    u8g2->sendBuffer();
     return firstItem;
 }
 

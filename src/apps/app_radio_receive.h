@@ -7,4 +7,5 @@
 
 void replaySignal();
 void saveSignal();
+void drawRssi(U8G2 *u8g2);
 #endif
