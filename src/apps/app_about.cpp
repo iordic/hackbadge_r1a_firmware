@@ -32,7 +32,7 @@ void about_onDraw(U8G2 *u8g2) {
     u8g2->setFont(u8g2_font_littlemissloudonbold_tr);
     u8g2->drawStr(5, 42, "by @iordic");
     u8g2->setFont(u8g2_font_5x8_mf);
-    u8g2->drawStr(0, 60, ("FW version: " + String(FIRMWARE_VERSION)).c_str());
+    u8g2->drawStr(0, 60, ("FW version: " + String(VERSION)).c_str());
     if (PHANTOM.toReset()) PHANTOM.resetAni();
     u8g2->sendBuffer();
 }

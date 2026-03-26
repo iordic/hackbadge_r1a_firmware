@@ -1,9 +1,6 @@
 #include <stdint.h>
 #include <Arduino.h>
 
-// Globals
-const char FIRMWARE_VERSION[] PROGMEM = "0.0.1b";
-
 // Menu item icons
 const uint16_t WAVE_ICON PROGMEM = 0x0055;
 const uint16_t BLUETOOTH_ICON PROGMEM = 0x005e;

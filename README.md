@@ -1,5 +1,19 @@
-# Hackbadge R1A Firmware
-Personal custom firmware for the Hackbat badge ([hackbadge_r1a](https://github.com/thebadg-es/hackbadge_r1a)), built for the ESP32‑C3, based on the workshop materials and concepts from Asturcon.
+# Hackbadge Firmware
+Personal custom firmware for the Hackbat badge ([hackbadge_r1a](https://github.com/thebadg-es/hackbadge_r1a) and hackbadge_r2a), built for the ESP32‑C3, based on the workshop materials and concepts from [Asturcon](https://asturcon.tech/) 2025.
+
+# Install firmware
+More details at the [wiki](../../wiki/Installation).
+## Compile & upload from source
+Install VSCode & PlatformIO, select your device and upload.
+
+## CMD / Esptool
+```bash
+esptool --chip esp32c3 write_flash 0x0 bootloader.bin 0x8000 partitions.bin 0x10000 firmware.bin
+```
+## Web
+You can use a webuploader like:
+* https://adafruit.github.io/Adafruit_WebSerial_ESPTool/
+* https://esptool.spacehuhn.com/
 
 
 # Credits
