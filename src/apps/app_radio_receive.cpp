@@ -38,7 +38,11 @@ void radio_receive_onStart() {
     receiverParams->queueHandle = queue;
     receiverParams->callerHandle = xTaskGetCurrentTaskHandle();
     ledsBrightness = prefs.getUChar("brightness");
-    sendNeopixelConfig(NeopixelConfiguration{FIXED_COLOR, ledsBrightness, {0x000000ff,0x000000ff,0x000000ff,0x000000ff}});
+    NeopixelConfiguration config;
+    config.operation = FIXED_COLOR;
+    config.brightness = ledsBrightness;
+     for (int i = 0; i < NUM_LEDS; i++) config.colors[i] = 0x000000ff;
+    sendNeopixelConfig(config);
     xTaskCreatePinnedToCore(radio_task, "RadioReceiverWorker", 2048, receiverParams, 5, &radioReceiverTaskHandle, 1);
     // Create received signals menu
     createDynamicMenu(&mainListReceivedSignals, NULL, [](){return String(getFrequencyFromEnum(receiverParams->frequency)) + "MHz " + getPresetNameFromEnum(receiverParams->preset);}, [](){});
@@ -56,7 +60,11 @@ void radio_receive_onStart() {
 
 void radio_receive_onStop() {
     xTaskNotify(radioReceiverTaskHandle, RADIO_STOP, eSetValueWithOverwrite);
-    sendNeopixelConfig(NeopixelConfiguration{RANDOM_ALL, ledsBrightness, {0,0,0}});
+    NeopixelConfiguration neopixelConfig;
+    neopixelConfig.brightness = ledsBrightness;
+    neopixelConfig.operation = RANDOM_ALL;
+    for (int i = 0; i < NUM_LEDS; i++) neopixelConfig.colors[i] = 0;
+    sendNeopixelConfig(neopixelConfig);
     vQueueDelete(queue);
     currentMenu = NULL;
 }

@@ -29,12 +29,20 @@ void jammer_onStart() {
   preset = params->preset;
   xTaskCreatePinnedToCore(radio_task, "RadioJammerWorker", 2048, params, 1, &jammerTaskHandle, 1);
   ledsBrightness = prefs.getUChar("brightness");
-  sendNeopixelConfig(NeopixelConfiguration{FIXED_COLOR, ledsBrightness, {0x00ff0000,0x00ff0000,0x00ff0000,0x00ff0000}});
+    NeopixelConfiguration neopixelConfig;
+    neopixelConfig.brightness = ledsBrightness;
+    neopixelConfig.operation = FIXED_COLOR;
+    for (int i = 0; i < NUM_LEDS; i++) neopixelConfig.colors[i] = 0x00ff0000;
+  sendNeopixelConfig(neopixelConfig);
 }
 
 void jammer_onStop() {
   xTaskNotify(jammerTaskHandle, 1, eSetValueWithOverwrite);
-  sendNeopixelConfig(NeopixelConfiguration{RANDOM_ALL, ledsBrightness, {0,0,0}});
+    NeopixelConfiguration neopixelConfig;
+    neopixelConfig.brightness = ledsBrightness;
+    neopixelConfig.operation = RANDOM_ALL;
+    for (int i = 0; i < NUM_LEDS; i++) neopixelConfig.colors[i] = 0;
+  sendNeopixelConfig(neopixelConfig);
   prefs.end();
 }
 

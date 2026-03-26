@@ -13,6 +13,7 @@
 
 /* I/O */
 #ifdef ESP32_C3_SUPERMINI_DIY
+    #undef NUM_LEDS
     #define USE_SSD1306
     #define NUM_LEDS 2
     /* Strapping GPIOs:

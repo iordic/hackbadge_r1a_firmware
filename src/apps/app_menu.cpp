@@ -171,7 +171,11 @@ void saveRadioConfig() {
 
 void saveNeopixelConfig() {
     int ok =  prefs.putUChar("brightness", neopixelBrightnessConfig.current);
-    sendNeopixelConfig(NeopixelConfiguration{RANDOM_ALL, neopixelBrightnessConfig.current, {0,0,0,0}});
+    NeopixelConfiguration neopixelConfig;
+    neopixelConfig.brightness = neopixelBrightnessConfig.current;
+    neopixelConfig.operation = RANDOM_ALL;
+    for (int i = 0; i < NUM_LEDS; i++) neopixelConfig.colors[i] = 0;
+    sendNeopixelConfig(neopixelConfig);
     if (ok) showPopupMenu("Saved!");
     else showPopupMenu("Failed.");
 }
