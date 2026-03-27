@@ -1,6 +1,7 @@
 #include "literals.h"
 #include "app.h"
 #include "config/io_config.h"
+#include "config/constants.h"
 #include "app_menu.h"
 
 #include "tasks/ui_task.h"
@@ -48,7 +49,7 @@ void menu_onStart() {
     // Default config if not saved values: 433MHz - OOK - 650Khz bw
     frequencySelectedConfig.current = prefs.getUChar("frequency", FREQ_433MHZ);
     radioPresetConfig.current = prefs.getUChar("preset", PRESET_AM650);
-    neopixelBrightnessConfig.current = prefs.getUChar("brightness", NEOPIXEL_BRIGHTNESS / 10);
+    neopixelBrightnessConfig.current = prefs.getUChar("brightness", DEFAULT_NEOPIXEL_BRIGHTNESS);
     frequencySelectedConfig.max = FREQ_915MHZ;
     radioPresetConfig.max = PRESET_FM476;
     neopixelBrightnessConfig.max = 10;

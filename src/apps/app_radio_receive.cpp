@@ -38,7 +38,7 @@ void radio_receive_onStart() {
     queue = xQueueCreate(8, sizeof(RFMessage));
     receiverParams->queueHandle = queue;
     receiverParams->callerHandle = xTaskGetCurrentTaskHandle();
-    ledsBrightness = prefs.getUChar("brightness");
+    ledsBrightness = prefs.getUChar("brightness", DEFAULT_NEOPIXEL_BRIGHTNESS);
     NeopixelConfiguration config;
     config.operation = FIXED_COLOR;
     config.brightness = ledsBrightness;

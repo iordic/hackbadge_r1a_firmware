@@ -9,7 +9,6 @@
 #define SCREEN_WIDTH   128
 #define SCREEN_HEIGHT  64
 #define NUM_LEDS 4
-#define NEOPIXEL_BRIGHTNESS 50
 
 /* I/O */
 #ifdef ESP32_C3_SUPERMINI_DIY

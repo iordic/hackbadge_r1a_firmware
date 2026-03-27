@@ -1,3 +1,4 @@
+#include "config/constants.h"
 #include "leds_task.h"
 
 Adafruit_NeoPixel strip(NUM_LEDS, NEOPIXEL, NEO_GRB + NEO_KHZ800);
@@ -14,7 +15,7 @@ void leds_task(void *pv) {
     uint32_t colors[NUM_LEDS];
     int mode = RANDOM_ALL, selected = 0;
     prefs.begin("configuration");
-    uint8_t brightness = prefs.getUChar("brightness", 5);
+    uint8_t brightness = prefs.getUChar("brightness", DEFAULT_NEOPIXEL_BRIGHTNESS);
     while (true) {
         strip.setBrightness(255 * brightness / 10);
         switch (mode) {

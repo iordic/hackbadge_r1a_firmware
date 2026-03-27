@@ -10,6 +10,7 @@
 #include "utils/menu.h"
 #include "utils/radio_utils.h"
 #include "config/sprites.h"
+#include "config/constants.h"
 
 extern App app_menu;
 TaskHandle_t jammerTaskHandle = NULL;
@@ -28,7 +29,7 @@ void jammer_onStart() {
   jammer_frequency = getFrequencyFromEnum(params->frequency);
   preset = params->preset;
   xTaskCreatePinnedToCore(radio_task, "RadioJammerWorker", 2048, params, 1, &jammerTaskHandle, 1);
-  ledsBrightness = prefs.getUChar("brightness");
+  ledsBrightness = prefs.getUChar("brightness", DEFAULT_NEOPIXEL_BRIGHTNESS);
     NeopixelConfiguration neopixelConfig;
     neopixelConfig.brightness = ledsBrightness;
     neopixelConfig.operation = FIXED_COLOR;
