@@ -22,6 +22,8 @@ Menu bleMenu;
 Menu wifiMenu;
 Menu gamesMenu;
 Menu settingsMenu;
+// GPIO submenu
+Menu gpioMenu;
 // settings submenus
 Menu radioSettingsMenu;
 Menu neopixelSettingsMenu;
@@ -55,11 +57,16 @@ void menu_onStart() {
         addMenuNode(&mainMenu, &BLUETOOTH_ICON, MENU_ITEM_BLE, &app_splash, &bleMenu);
         addMenuNode(&mainMenu, &WIFI_ICON, MENU_ITEM_WIFI, &app_splash, &wifiMenu);
         addMenuNode(&mainMenu, &PUZZLE_ICON, MENU_ITEM_GAMES, &app_splash, &gamesMenu);
+        addMenuNode(&mainMenu, &GPIO_ICON, MENU_ITEM_GPIO, &app_splash, &gpioMenu);
         addMenuNode(&mainMenu, &WRENCH_ICON, MENU_ITEM_SETTINGS, &app_splash, &settingsMenu);
     });
     // Games submenu
     createMenu(&gamesMenu, &mainMenu, []() {
         addMenuNode(&gamesMenu, &CURSOR_DOWN_ICON, MENU_ITEM_SNAKE, &mainMenu, &app_snake);
+    });
+    // GPIO submenu
+    createMenu(&gpioMenu, &mainMenu, []() {
+        addMenuNode(&gpioMenu, &I2C_ICON, MENU_ITEM_I2C, &mainMenu, &app_i2c_tools);
     });
     // Subghz submenu: apps directas (RC-Switch, Raw, Jammer); cada una gestiona
     // RX y TX internamente.
@@ -115,6 +122,7 @@ void menu_onStart() {
     mainMenu.build();
     subghzMenu.build();
     gamesMenu.build();
+    gpioMenu.build();
     settingsMenu.build();
     bleMenu.build();
     wifiMenu.build();
