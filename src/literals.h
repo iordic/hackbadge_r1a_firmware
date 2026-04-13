@@ -26,12 +26,16 @@ const uint16_t READ_FILE_ICON PROGMEM = 0x0092;
 const uint16_t PLAY_ICON PROGMEM = 0x00D3;
 const uint16_t REPLAY_ICON PROGMEM = 0x00cc;
 const uint16_t USER_ICON PROGMEM = 0x00e5;
+const uint16_t GPIO_ICON PROGMEM = 0x00ac;
+const uint16_t I2C_ICON PROGMEM = 0x00ee;
 
 // Menu item labels
 const char MENU_ITEM_SUBGHZ[] PROGMEM = "Subghz";
 const char MENU_ITEM_BLE[] PROGMEM = "BLE";
 const char MENU_ITEM_WIFI[] PROGMEM = "WiFi";
 const char MENU_ITEM_GAMES[] PROGMEM = "Games";
+const char MENU_ITEM_GPIO[] PROGMEM = "GPIO";
+const char MENU_ITEM_I2C[] PROGMEM = "I2C Tools";
 const char MENU_ITEM_SETTINGS[] PROGMEM = "Settings";
 const char MENU_ITEM_RADIO_NOT_FOUND[] PROGMEM = "cc1101 not found";
 const char MENU_ITEM_TRANSMIT[] PROGMEM = "Transmit";

@@ -17,6 +17,7 @@ extern App app_radio_receive;
 extern App app_wifi_beacon_spam;
 extern App app_about;
 extern App app_simple_tx;
+extern App app_i2c_tools;
 
 Menu mainMenu;
 // Submenus
@@ -28,6 +29,8 @@ Menu settingsMenu;
 // Subghz submenus
 Menu radioTransmitMenu;
 Menu radioReceiveMenu;
+// GPIO submenu
+Menu gpioMenu;
 // settings submenus
 Menu radioSettingsMenu;
 Menu neopixelSettingsMenu;
@@ -61,11 +64,16 @@ void menu_onStart() {
         addMenuNode(&mainMenu, &BLUETOOTH_ICON, MENU_ITEM_BLE, &app_splash, &bleMenu);
         addMenuNode(&mainMenu, &WIFI_ICON, MENU_ITEM_WIFI, &app_splash, &wifiMenu);
         addMenuNode(&mainMenu, &PUZZLE_ICON, MENU_ITEM_GAMES, &app_splash, &gamesMenu);
+        addMenuNode(&mainMenu, &GPIO_ICON, MENU_ITEM_GPIO, &app_splash, &gpioMenu);
         addMenuNode(&mainMenu, &WRENCH_ICON, MENU_ITEM_SETTINGS, &app_splash, &settingsMenu);
     });
     // Games submenu
     createMenu(&gamesMenu, &mainMenu, []() {
         addMenuNode(&gamesMenu, &CURSOR_DOWN_ICON, MENU_ITEM_SNAKE, &mainMenu, &app_snake);
+    });
+    // GPIO submenu
+    createMenu(&gpioMenu, &mainMenu, []() {
+        addMenuNode(&gpioMenu, &I2C_ICON, MENU_ITEM_I2C, &mainMenu, &app_i2c_tools);
     });
     // Subghz submenu
     createMenu(&subghzMenu, &mainMenu, []() {
@@ -128,6 +136,7 @@ void menu_onStart() {
     mainMenu.build();
     subghzMenu.build();
     gamesMenu.build();
+    gpioMenu.build();
     settingsMenu.build();
     radioTransmitMenu.build();
     radioReceiveMenu.build();
