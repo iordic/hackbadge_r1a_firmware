@@ -6,14 +6,21 @@
 #include "config/constants.h"
 #include "utils/radio_utils.h"
 #include "tasks/radio_task.h"
+#include "tasks/ui_task.h"
 #include "utils/file_utils.h"
 #include "utils/menu.h"
 
 extern Preferences prefs;
 extern Menu* currentMenu;
 extern App app_menu;
+Menu simpleTxMainMenu;
 Menu mainListSimpleTxFiles;
 Menu simpleTxFileMenu;
+Menu manualTxMenu;
+// Manually entered code (filled via on-screen keyboard)
+String manualValueStr;
+String manualBitsStr;
+String manualProtocolStr;
 RadioTaskParams *simpleTransmitterParams;
 QueueHandle_t simpleTxQueue;
 extern int row;
@@ -24,7 +31,7 @@ SimpleTxFile currentFileContent;
 
 void simple_tx_onStart() {
     row = 0;
-    currentMenu = &mainListSimpleTxFiles;
+    currentMenu = &simpleTxMainMenu;
     prefs.begin("configuration", true);
     simpleTransmitterParams = (RadioTaskParams *) malloc(sizeof(RadioTaskParams));
     simpleTransmitterParams->operation = SEND_SIGNAL;
@@ -34,15 +41,35 @@ void simple_tx_onStart() {
     simpleTransmitterParams->queueHandle = simpleTxQueue;
     simpleTransmitterParams->callerHandle = xTaskGetCurrentTaskHandle();
     xTaskCreatePinnedToCore(radio_task, "RadioTransmitterWorker", 2048, simpleTransmitterParams, 5, &radioTransmitterTaskHandle, 1);
-    createDynamicMenu(&mainListSimpleTxFiles, NULL, [](){return String(getFrequencyFromEnum(simpleTransmitterParams->frequency)) + "MHz " + getPresetNameFromEnum(simpleTransmitterParams->preset);}, [](){});
+    // Top menu: choose between typing a code by hand or sending a saved one
+    createMenu(&simpleTxMainMenu, NULL, [](){
+        addMenuNode(&simpleTxMainMenu, []() -> uint16_t { return SIMPLE_TRANSMIT_ICON; }, [](){ return String("Manual"); },
+            [](){ changeMenu(&manualTxMenu); }, [](){ changeAppContext(&app_menu); });
+        addMenuNode(&simpleTxMainMenu, []() -> uint16_t { return SAVE_ICON; }, [](){ return String("Saved"); },
+            [](){ changeMenu(&mainListSimpleTxFiles); }, [](){ changeAppContext(&app_menu); });
+    });
+    // Saved signals list (files on LittleFS)
+    createDynamicMenu(&mainListSimpleTxFiles, &simpleTxMainMenu, [](){return String(getFrequencyFromEnum(simpleTransmitterParams->frequency)) + "MHz " + getPresetNameFromEnum(simpleTransmitterParams->preset);}, [](){});
     fillSimpleTxFilesMenu(&mainListSimpleTxFiles, savedSimpleTxFiles);
     createMenu(&simpleTxFileMenu, &mainListSimpleTxFiles, [](){
         addMenuNode(&simpleTxFileMenu, &PLAY_ICON, MENU_ITEM_SEND_SIGNAL, [](){ simple_tx_sendSignal(); });
         addMenuNode(&simpleTxFileMenu, &READ_FILE_ICON, MENU_ITEM_READ_FILE, [](){loadFileContent(); showingFileContent = true;});
         addMenuNode(&simpleTxFileMenu, &DELETE_ICON, MENU_ITEM_DELETE, [](){removeSelectedTxFile();});
     });
+    // Manual code entry (typed with the on-screen keyboard)
+    manualValueStr = "";
+    manualBitsStr = "24";
+    manualProtocolStr = "1";
+    createMenu(&manualTxMenu, &simpleTxMainMenu, [](){
+        addMenuNode(&manualTxMenu, [](){ return "Value(hex): " + manualValueStr; }, [](){ startKeyboard(&manualValueStr); });
+        addMenuNode(&manualTxMenu, [](){ return "Bits: " + manualBitsStr; }, [](){ startKeyboard(&manualBitsStr); });
+        addMenuNode(&manualTxMenu, [](){ return "Protocol: " + manualProtocolStr; }, [](){ startKeyboard(&manualProtocolStr); });
+        addMenuNode(&manualTxMenu, &PLAY_ICON, MENU_ITEM_SEND_SIGNAL, [](){ simple_tx_sendManual(); });
+    });
+    simpleTxMainMenu.build();
     mainListSimpleTxFiles.build();
     simpleTxFileMenu.build();
+    manualTxMenu.build();
 }
 
 void simple_tx_onStop() {
@@ -51,19 +78,15 @@ void simple_tx_onStop() {
     currentMenu = NULL;
 }
 void simple_tx_onEvent(int evt) {
-    if (mainListSimpleTxFiles.list->isEmpty()) {
-        if (evt == BTN_BACK) {
-            simple_tx_onStop();
-            extern App *currentApp;
-            currentApp = &app_menu;
-            currentApp->onStart();            
-        }
-        return;
-    }
     if (showingFileContent) {
         if (evt == BTN_BACK) {
             showingFileContent = false;
         }
+        return;
+    }
+    // Saved list with no files: only allow going back to the top menu
+    if (currentMenu == &mainListSimpleTxFiles && currentMenu->list->isEmpty()) {
+        if (evt == BTN_BACK) changeMenu(&simpleTxMainMenu);
         return;
     }
     if (evt == BTN_BACK) {
@@ -117,7 +140,10 @@ void fillSimpleTxFilesMenu(Menu* menu, SimpleList<String>* &files) {
     files = FileUtils::listFiles(SIMPLE_TRANSCEIVER_PATH);
     if (files != nullptr) {
         for (int i = 0; i < files->size(); i++) {
-            addMenuNode(menu, files->get(i), &app_menu, &simpleTxFileMenu);
+            String fileName = files->get(i);
+            addMenuNode(menu, [fileName](){ return fileName; },
+                [](){ changeMenu(&simpleTxFileMenu); },
+                [](){ changeMenu(&simpleTxMainMenu); });
         }
     }
 }
@@ -131,6 +157,24 @@ void simple_tx_sendSignal() {
 void simple_tx_sendSignal(String fileName) {
     RFMessage msg;
     loadRFMessageFromFile(fileName, &msg);
+    xTaskNotify(radioTransmitterTaskHandle, SEND_SIGNAL, eSetValueWithOverwrite);
+    xQueueSend(simpleTxQueue, &msg, 0);
+    showPopupMenu("Signal sent!");
+}
+
+void simple_tx_sendManual() {
+    RFMessage msg;
+    msg.value = strtoul(manualValueStr.c_str(), nullptr, 16);
+    msg.length = (unsigned int) manualBitsStr.toInt();
+    msg.protocol = (unsigned int) manualProtocolStr.toInt();
+    msg.frequency = simpleTransmitterParams->frequency;
+    msg.preset = simpleTransmitterParams->preset;
+    if (msg.value == 0 || msg.length == 0) {
+        showPopupMenu("Invalid code");
+        return;
+    }
+    if (msg.protocol == 0) msg.protocol = 1;
+    Serial.println("Manual TX: value=0x" + manualValueStr + " bits=" + String(msg.length) + " proto=" + String(msg.protocol));
     xTaskNotify(radioTransmitterTaskHandle, SEND_SIGNAL, eSetValueWithOverwrite);
     xQueueSend(simpleTxQueue, &msg, 0);
     showPopupMenu("Signal sent!");

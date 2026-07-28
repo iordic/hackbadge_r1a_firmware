@@ -27,4 +27,5 @@ void simple_tx_sendSignal();
 void simple_tx_sendSignal(String fileName);
 void loadFileContent();
 void removeSelectedTxFile();
+void simple_tx_sendManual();
 #endif
