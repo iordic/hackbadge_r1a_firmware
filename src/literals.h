@@ -50,6 +50,11 @@ const char MENU_ITEM_DELETE[] PROGMEM = "Delete";
 const char MENU_ITEM_READ_FILE[] PROGMEM = "Read File";
 const char MENU_ITEM_REPLAY[] PROGMEM = "Replay";
 const char MENU_ITEM_SEND_SIGNAL[] PROGMEM = "Send Signal";
+const char MENU_ITEM_MANUAL[] PROGMEM = "Manual";
+const char MENU_ITEM_SAVED[] PROGMEM = "Saved";
+const char MENU_ITEM_MANUAL_VALUE[] PROGMEM = "Value(hex): ";
+const char MENU_ITEM_MANUAL_BITS[] PROGMEM = "Bits ";
+const char MENU_ITEM_MANUAL_PROTOCOL[] PROGMEM = "Protocol ";
 const char MENU_ITEM_NOT_IMPLEMENTED[] PROGMEM = "WIP. Coming soon!";
 
 // Rickroll SPAM Backon SSIDs
