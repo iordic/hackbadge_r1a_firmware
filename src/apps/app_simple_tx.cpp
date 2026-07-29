@@ -17,10 +17,11 @@ Menu simpleTxMainMenu;
 Menu mainListSimpleTxFiles;
 Menu simpleTxFileMenu;
 Menu manualTxMenu;
-// Manually entered code (filled via on-screen keyboard)
+// Manually entered code: value typed via keyboard (hex), bits/protocol picked
+// with left/right like the neopixel brightness setting.
 String manualValueStr;
-String manualBitsStr;
-String manualProtocolStr;
+SettingsValue manualBitsConfig;
+SettingsValue manualProtocolConfig;
 RadioTaskParams *simpleTransmitterParams;
 QueueHandle_t simpleTxQueue;
 extern int row;
@@ -41,12 +42,11 @@ void simple_tx_onStart() {
     simpleTransmitterParams->queueHandle = simpleTxQueue;
     simpleTransmitterParams->callerHandle = xTaskGetCurrentTaskHandle();
     xTaskCreatePinnedToCore(radio_task, "RadioTransmitterWorker", 2048, simpleTransmitterParams, 5, &radioTransmitterTaskHandle, 1);
-    // Top menu: choose between typing a code by hand or sending a saved one
+    // Top menu: choose between typing a code by hand or sending a saved one.
+    // BACK to exit the app is handled in simple_tx_onEvent (needs onStop).
     createMenu(&simpleTxMainMenu, NULL, [](){
-        addMenuNode(&simpleTxMainMenu, []() -> uint16_t { return SIMPLE_TRANSMIT_ICON; }, [](){ return String("Manual"); },
-            [](){ changeMenu(&manualTxMenu); }, [](){ changeAppContext(&app_menu); });
-        addMenuNode(&simpleTxMainMenu, []() -> uint16_t { return SAVE_ICON; }, [](){ return String("Saved"); },
-            [](){ changeMenu(&mainListSimpleTxFiles); }, [](){ changeAppContext(&app_menu); });
+        addMenuNode(&simpleTxMainMenu, &SIMPLE_TRANSMIT_ICON, MENU_ITEM_MANUAL, &manualTxMenu);
+        addMenuNode(&simpleTxMainMenu, &SAVE_ICON, MENU_ITEM_SAVED, &mainListSimpleTxFiles);
     });
     // Saved signals list (files on LittleFS)
     createDynamicMenu(&mainListSimpleTxFiles, &simpleTxMainMenu, [](){return String(getFrequencyFromEnum(simpleTransmitterParams->frequency)) + "MHz " + getPresetNameFromEnum(simpleTransmitterParams->preset);}, [](){});
@@ -56,14 +56,16 @@ void simple_tx_onStart() {
         addMenuNode(&simpleTxFileMenu, &READ_FILE_ICON, MENU_ITEM_READ_FILE, [](){loadFileContent(); showingFileContent = true;});
         addMenuNode(&simpleTxFileMenu, &DELETE_ICON, MENU_ITEM_DELETE, [](){removeSelectedTxFile();});
     });
-    // Manual code entry (typed with the on-screen keyboard)
+    // Manual code entry: value typed on the keyboard, bits/protocol stepped
     manualValueStr = "";
-    manualBitsStr = "24";
-    manualProtocolStr = "1";
+    manualBitsConfig.current = 24;
+    manualBitsConfig.max = 64;
+    manualProtocolConfig.current = 1;
+    manualProtocolConfig.max = 12;
     createMenu(&manualTxMenu, &simpleTxMainMenu, [](){
-        addMenuNode(&manualTxMenu, [](){ return "Value(hex): " + manualValueStr; }, [](){ startKeyboard(&manualValueStr); });
-        addMenuNode(&manualTxMenu, [](){ return "Bits: " + manualBitsStr; }, [](){ startKeyboard(&manualBitsStr); });
-        addMenuNode(&manualTxMenu, [](){ return "Protocol: " + manualProtocolStr; }, [](){ startKeyboard(&manualProtocolStr); });
+        addMenuNode(&manualTxMenu, [](){ return String(MENU_ITEM_MANUAL_VALUE) + manualValueStr; }, [](){ startKeyboard(&manualValueStr); });
+        addMenuNodeSetting(&manualTxMenu, MENU_ITEM_MANUAL_BITS, &manualBitsConfig, [](uint8_t v){ return String(v); }, &simpleTxMainMenu);
+        addMenuNodeSetting(&manualTxMenu, MENU_ITEM_MANUAL_PROTOCOL, &manualProtocolConfig, [](uint8_t v){ return String(v); }, &simpleTxMainMenu);
         addMenuNode(&manualTxMenu, &PLAY_ICON, MENU_ITEM_SEND_SIGNAL, [](){ simple_tx_sendManual(); });
     });
     simpleTxMainMenu.build();
@@ -82,6 +84,12 @@ void simple_tx_onEvent(int evt) {
         if (evt == BTN_BACK) {
             showingFileContent = false;
         }
+        return;
+    }
+    // Top menu: BACK leaves the app (changeAppContext runs onStop -> frees the
+    // radio worker and queue), so it can't be a plain node hold().
+    if (currentMenu == &simpleTxMainMenu && evt == BTN_BACK) {
+        changeAppContext(&app_menu);
         return;
     }
     // Saved list with no files: only allow going back to the top menu
@@ -141,9 +149,8 @@ void fillSimpleTxFilesMenu(Menu* menu, SimpleList<String>* &files) {
     if (files != nullptr) {
         for (int i = 0; i < files->size(); i++) {
             String fileName = files->get(i);
-            addMenuNode(menu, [fileName](){ return fileName; },
-                [](){ changeMenu(&simpleTxFileMenu); },
-                [](){ changeMenu(&simpleTxMainMenu); });
+            // OK -> file actions; BACK -> parentMenu (the Simple TX top menu)
+            addMenuNode(menu, [fileName](){ return fileName; }, &simpleTxFileMenu);
         }
     }
 }
@@ -165,8 +172,8 @@ void simple_tx_sendSignal(String fileName) {
 void simple_tx_sendManual() {
     RFMessage msg;
     msg.value = strtoul(manualValueStr.c_str(), nullptr, 16);
-    msg.length = (unsigned int) manualBitsStr.toInt();
-    msg.protocol = (unsigned int) manualProtocolStr.toInt();
+    msg.length = manualBitsConfig.current;
+    msg.protocol = manualProtocolConfig.current;
     msg.frequency = simpleTransmitterParams->frequency;
     msg.preset = simpleTransmitterParams->preset;
     if (msg.value == 0 || msg.length == 0) {
