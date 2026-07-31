@@ -14,6 +14,7 @@ extern App app_splash;
 extern App app_snake;
 extern App app_jammer;
 extern App app_radio_receive;
+extern App app_radio_raw;
 extern App app_wifi_beacon_spam;
 extern App app_about;
 extern App app_simple_tx;
@@ -89,6 +90,7 @@ void menu_onStart() {
     // Radio receive submenu
     createMenu(&radioReceiveMenu, &subghzMenu, []() {
         addMenuNode(&radioReceiveMenu, &SIMPLE_RECEIVE_ICON, MENU_ITEM_SIMPLE_RX, &subghzMenu, &app_radio_receive);
+        addMenuNode(&radioReceiveMenu, &SIMPLE_RECEIVE_ICON, MENU_ITEM_RAW_RX, &subghzMenu, &app_radio_raw);
     });
     // Settings submenu
     createMenu(&settingsMenu, &mainMenu, []() {

@@ -39,6 +39,7 @@ const char MENU_ITEM_JAMMER[] PROGMEM = "Jammer";
 const char MENU_ITEM_RECEIVE[] PROGMEM = "Receive";
 const char MENU_ITEM_SIMPLE_RX[] PROGMEM = "Simple Rx";
 const char MENU_ITEM_SIMPLE_TX[] PROGMEM = "Simple Tx";
+const char MENU_ITEM_RAW_RX[] PROGMEM = "Raw Rx";
 const char MENU_ITEM_SNAKE[] PROGMEM = "Snake";
 const char MENU_ITEM_RADIO[] PROGMEM = "Radio";
 const char MENU_ITEM_RGB[] PROGMEM = "RGB Lights";

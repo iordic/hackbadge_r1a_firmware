@@ -187,15 +187,28 @@ int drawDynamicList(U8G2 *u8g2, Menu* menu, int firstItem) {
     int tmpLen, visibleCount = 3;  // número de líneas visibles en pantalla
     String tmp;
     int total = menu->list->size();
-    u8g2->setFont(u8g2_font_t0_11_tr);
-    u8g2->drawStr(0, 8, menu->getTitle().c_str());
-    u8g2->drawStr(95, 8, (String(menu->selected + 1) + "/" + String(menu->list->size())).c_str());
-    u8g2->setFont(u8g2_font_7x14_tr);
     // --- Seguridad: evitar índices fuera de rango ---
-    if (menu->selected < 0)
-        menu->selected = total - 1; // wrap around to the bottom
-    else if (menu->selected >= total)
-        menu->selected = 0; // wrap around to the top
+    // (antes de pintar la cabecera, para que el contador nunca muestre 0/N ni N+1/N)
+    if (total > 0) {
+        if (menu->selected < 0)
+            menu->selected = total - 1; // wrap around to the bottom
+        else if (menu->selected >= total)
+            menu->selected = 0; // wrap around to the top
+    }
+
+    // --- Cabecera: contador alineado a la derecha y título recortado ---
+    // El contador crece al pasar de 9 a 10 elementos, así que lo anclamos al
+    // borde derecho y limitamos el título al hueco libre para que no se solapen.
+    u8g2->setFont(u8g2_font_t0_11_mr);
+    String counter = String(menu->selected + 1) + "/" + String(total);
+    int counterX = 128 - u8g2->getStrWidth(counter.c_str());
+    String title = menu->getTitle();
+    int maxTitleWidth = counterX - 3;   // 3 px de separación
+    while (title.length() > 0 && u8g2->getStrWidth(title.c_str()) > maxTitleWidth)
+        title.remove(title.length() - 1);
+    u8g2->drawStr(0, 8, title.c_str());
+    u8g2->drawStr(counterX, 8, counter.c_str());
+    u8g2->setFont(u8g2_font_7x14_tr);
 
     // --- Ajuste automático del scroll vertical (row) ---
     // Mueve la "ventana" visible cuando el elemento seleccionado sale del rango actual
