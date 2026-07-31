@@ -259,6 +259,9 @@ void radioSendRaw() {
             RawSignal *sig = NULL;
             if (xQueueReceive(radioQueue, &sig, portMAX_DELAY) == pdTRUE && sig) {
                 sendRaw(sig);
+                // En SEND_RAW la señal se carga de fichero solo para enviarla:
+                // la libera el task (a diferencia de REPLAY_RAW, donde es de la UI).
+                freeRawSignal(sig);
             }
         } else if (xRadioResult == pdTRUE && radioNotificationValue == RADIO_STOP) {
             break;

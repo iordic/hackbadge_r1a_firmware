@@ -8,6 +8,7 @@
 #include "config/sprites.h"
 #include "utils/menu.h"
 #include "utils/radio_utils.h"
+#include "utils/file_utils.h"
 #include "devices/display.h"
 #include "devices/radio.h"
 #include "tasks/ui_task.h"
@@ -26,8 +27,10 @@ TaskHandle_t rawReceiverTaskHandle = NULL;
 RadioTaskParams *rawReceiverParams;
 Menu mainListRawSignals;
 Menu rawSignalMenu;
+Menu rawSaveFileMenu;
 // Guardamos punteros: la señal vive en heap (la crea radio_task) y la libera esta app.
 SimpleList<RawSignal*> *rawMessages;
+String rawSaveFileName = "";
 
 static void raw_freeAllMessages() {
     if (!rawMessages) return;
@@ -65,8 +68,14 @@ void radio_raw_onStart() {
     }, [](){});
     createMenu(&rawSignalMenu, &mainListRawSignals, [](){
         addMenuNode(&rawSignalMenu, &REPLAY_ICON, MENU_ITEM_REPLAY, [](){ raw_replay(); });
+        addMenuNode(&rawSignalMenu, &SAVE_ICON, MENU_ITEM_SAVE, &rawSaveFileMenu);
+    });
+    createMenu(&rawSaveFileMenu, &rawSignalMenu, []() {
+        addMenuNode(&rawSaveFileMenu, [](){ return "Name: " + rawSaveFileName; }, [](){ startKeyboard(&rawSaveFileName); });
+        addMenuNode(&rawSaveFileMenu, "Accept", &raw_saveSignal);
     });
     rawSignalMenu.build();
+    rawSaveFileMenu.build();
 }
 
 void radio_raw_onStop() {
@@ -143,6 +152,22 @@ void raw_replay() {
     xTaskNotify(rawReceiverTaskHandle, REPLAY_RAW, eSetValueWithOverwrite);
     xQueueSend(rawReplayQueue, &sig, 0);   // enviamos el PUNTERO; la señal sigue siendo nuestra
     showPopupMenu("RAW replayed!");
+}
+
+void raw_saveSignal() {
+    if (rawMessages->size() == 0) return;
+    if (rawSaveFileName.length() == 0) {
+        showPopupMenu("Name is empty.");
+        return;
+    }
+    RawSignal *sig = rawMessages->get(mainListRawSignals.selected);
+    if (FileUtils::saveRaw(RAW_TRANSCEIVER_PATH, rawSaveFileName, sig)) {
+        showPopupMenu("Saved!");
+        rawSaveFileName = "";
+        currentMenu = &mainListRawSignals;
+    } else {
+        showPopupMenu("Error.");
+    }
 }
 
 App app_radio_raw = {

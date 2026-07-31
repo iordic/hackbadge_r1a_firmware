@@ -6,4 +6,5 @@
 #include <freertos/queue.h>
 
 void raw_replay();
+void raw_saveSignal();
 #endif
