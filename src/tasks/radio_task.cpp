@@ -224,11 +224,7 @@ void radioReceiveRaw() {
         if (rawIdx >= RAW_MIN_CHANGES && (micros() - rawLastEdge) > RAW_END_GAP_US) {
             detachInterrupt(digitalPinToInterrupt(CC1101_GDO0));
             uint16_t count = rawIdx;
-            Serial.printf("[raw] Count=%u\n      ", count);
-            for (uint16_t i = 0; i < count; i++) {
-                Serial.print(rawBuf[i]); Serial.print(',');
-            }
-            Serial.println();
+            Serial.printf("RAW signal captured (%u pulses).\n", count);
             RawSignal *sig = rawFinalizeCapture(count, currentFrequencyOpt, currentPresetOpt);
             if (sig) {
                 RawSignal *ptr = sig;
