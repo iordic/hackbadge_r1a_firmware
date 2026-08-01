@@ -25,7 +25,7 @@ uint32_t radioNotificationValue;
 QueueHandle_t radioQueue;
 static int currentFrequencyOpt;   // enum de freq/preset activos (para etiquetar capturas)
 static int currentPresetOpt;
-// Cola dedicada UI->task para peticiones de replay RAW (definida en app_radio_raw.cpp).
+// Cola dedicada UI->task para peticiones de replay RAW (definida en app_raw.cpp).
 // Separada de radioQueue (task->UI de capturas) para no mezclar productores/consumidores.
 extern QueueHandle_t rawReplayQueue;
 

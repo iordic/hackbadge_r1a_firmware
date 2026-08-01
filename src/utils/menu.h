@@ -58,4 +58,6 @@ int drawDynamicList(U8G2 *u8g2, Menu* menu, int firstItem);
 void showPopupMenu(const char* message);
 // Pantalla "404 / carpeta vacía" compartida por las apps que listan ficheros.
 void drawEmptyFolder(U8G2 *u8g2);
+// Barra de RSSI (esquina inferior derecha) para las vistas de escucha.
+void drawRssi(U8G2 *u8g2);
 #endif

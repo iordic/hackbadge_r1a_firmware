@@ -5,6 +5,7 @@
 #include "menu.h"
 
 #include "devices/display.h"
+#include "devices/radio.h"
 #include "tasks/ui_task.h"
 
 Menu* currentMenu;
@@ -248,4 +249,14 @@ void drawEmptyFolder(U8G2 *u8g2) {
     u8g2->drawStr(25, 40, "404");
     u8g2->setFont(u8g2_font_7x14_mr);
     u8g2->drawStr(10, 54, "Folder is empty.");
+}
+
+void drawRssi(U8G2 *u8g2) {
+    int receivedRssi = radio_get()->getRssi();
+    int barWidth = 40;
+    u8g2->setDrawColor(1);
+    u8g2->drawBox(85, 59, map(receivedRssi, -100, -11, 0, 40), 5);
+    u8g2->drawFrame(85, 59, barWidth, 5);
+    u8g2->setFont(u8g2_font_tiny5_tr);
+    u8g2->drawStr(70, 64, "rssi");
 }
