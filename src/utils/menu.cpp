@@ -30,6 +30,9 @@ void menuHandleEvent(Menu* menu, int evt) {
 }
 
 void createMenu(Menu* menu, Menu* parent, std::function<void()>build) {
+    // Si la app se reabre, liberamos la lista del onStart anterior para no
+    // filtrarla. Los Menu son globales (list == nullptr en la 1ª llamada).
+    if (menu->list) delete menu->list;
     menu->list       = new SimpleList<MenuNode>;
     menu->parentMenu = parent;
     menu->selected   = 0;
