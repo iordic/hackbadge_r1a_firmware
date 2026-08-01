@@ -144,7 +144,6 @@ void drawRssi(U8G2 *u8g2) {
     u8g2->drawFrame(85, 59, barWidth, 5);
     u8g2->setFont(u8g2_font_tiny5_tr);
     u8g2->drawStr(70, 64, "rssi");
-    Serial.println(u8g2->getStrWidth("rssi"));
 }
 
 App app_radio_receive = {

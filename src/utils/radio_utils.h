@@ -8,7 +8,10 @@ enum RadioOperation {
   RECEIVE_SIGNAL,
   REPLAY_SIGNAL,
   SEND_SIGNAL,
-  RADIO_STOP
+  RADIO_STOP,
+  RECEIVE_RAW,   // captura RAW (timings crudos, sin decodificar)
+  SEND_RAW,      // transmisor RAW (espera RawSignal por la queue)
+  REPLAY_RAW     // notificación: reproducir la RawSignal recibida por la queue
 };
 
 enum AvailableFrequencies {
