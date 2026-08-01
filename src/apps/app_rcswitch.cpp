@@ -27,6 +27,7 @@
 extern App app_menu;
 extern Preferences prefs;
 extern Menu* currentMenu;
+extern Menu subghzMenu;   // para volver al submenú Sub-GHz al salir
 extern int row;
 extern uint8_t ledsBrightness;
 
@@ -109,7 +110,7 @@ static void rcswitch_onStop() {
     default: break;
     }
     rcMode = RC_MENU;
-    currentMenu = NULL;
+    currentMenu = &subghzMenu;   // al salir, volver al submenú Sub-GHz
 }
 
 static void rcswitch_onEvent(int evt) {
