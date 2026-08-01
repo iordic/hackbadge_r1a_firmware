@@ -160,11 +160,11 @@ void loadFileContent() {
 void removeSelectedTxFile() {
     String deleteFile = savedSimpleTxFiles->get(mainListSimpleTxFiles.selected);
     if (FileUtils::remove(SIMPLE_TRANSCEIVER_PATH, deleteFile)) {
-        showPopupMenu("Archivo borrado");
+        showPopupMenu("File deleted");
         savedSimpleTxFiles->remove(mainListSimpleTxFiles.selected);
         fillSimpleTxFilesMenu(&mainListSimpleTxFiles, savedSimpleTxFiles);
     } else {
-        showPopupMenu("Error al borrar");
+        showPopupMenu("Delete error");
     }
     currentMenu = &mainListSimpleTxFiles;
 }

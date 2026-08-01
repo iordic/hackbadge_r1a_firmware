@@ -169,10 +169,10 @@ void raw_tx_loadFileContent() {
 void removeSelectedRawTxFile() {
     String deleteFile = savedRawTxFiles->get(mainListRawTxFiles.selected);
     if (FileUtils::remove(RAW_TRANSCEIVER_PATH, deleteFile)) {
-        showPopupMenu("Archivo borrado");
+        showPopupMenu("File deleted");
         fillRawTxFilesMenu(&mainListRawTxFiles, savedRawTxFiles);
     } else {
-        showPopupMenu("Error al borrar");
+        showPopupMenu("Delete error");
     }
     currentMenu = &mainListRawTxFiles;
 }
