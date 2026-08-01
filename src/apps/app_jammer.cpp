@@ -30,20 +30,12 @@ void jammer_onStart() {
   preset = params->preset;
   xTaskCreatePinnedToCore(radio_task, "RadioJammerWorker", 2048, params, 1, &jammerTaskHandle, 1);
   ledsBrightness = prefs.getUChar("brightness", DEFAULT_NEOPIXEL_BRIGHTNESS);
-    NeopixelConfiguration neopixelConfig;
-    neopixelConfig.brightness = ledsBrightness;
-    neopixelConfig.operation = FIXED_COLOR;
-    for (int i = 0; i < NUM_LEDS; i++) neopixelConfig.colors[i] = 0x00ff0000;
-  sendNeopixelConfig(neopixelConfig);
+  sendNeopixelSolid(0x00ff0000, ledsBrightness);   // rojo: jammer activo
 }
 
 void jammer_onStop() {
   xTaskNotify(jammerTaskHandle, 1, eSetValueWithOverwrite);
-    NeopixelConfiguration neopixelConfig;
-    neopixelConfig.brightness = ledsBrightness;
-    neopixelConfig.operation = RANDOM_ALL;
-    for (int i = 0; i < NUM_LEDS; i++) neopixelConfig.colors[i] = 0;
-  sendNeopixelConfig(neopixelConfig);
+  sendNeopixelIdle(ledsBrightness);
   prefs.end();
 }
 
@@ -66,27 +58,11 @@ void jammer_onDraw(U8G2 *u8g2) {
   dtostrf(jammer_frequency, 4, 3, buf);
   u8g2->drawStr(55, 25, buf);
   u8g2->drawStr(105, 25, "MHz");
-  u8g2->drawStr(65, 40, String(getPresetString(preset)).c_str());
+  u8g2->drawStr(65, 40, getPresetNameFromEnum(preset).c_str());
   u8g2->setFont(u8g2_font_tiny5_tr);
   u8g2->drawButtonUTF8(80, 55, U8G2_BTN_BW2, 0,  2,  2, "Hold to exit");
   u8g2->sendBuffer();
 }
-
-String getPresetString(int preset) {
-  switch (preset) {
-    case PRESET_AM270:
-      return "AM 270";
-    case PRESET_AM650:
-      return "AM 650";
-    case PRESET_FM238:
-      return "FM 238";
-    case PRESET_FM476:
-      return "FM 476";
-    default:
-      return "Custom";
-  }
-}
-
 
 App app_jammer = {
   .name = "Jammer",

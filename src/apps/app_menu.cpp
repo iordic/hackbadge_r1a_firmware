@@ -147,19 +147,7 @@ void menu_onStop() {
 }
 
 void menu_onEvent(int evt) {
-    if (evt == BTN_BACK) {
-        currentMenu->list->get(currentMenu->selected).hold();
-    } else if (evt == BTN_OK) {
-        currentMenu->list->get(currentMenu->selected).click();
-    } else if (evt == BTN_UP) {
-        currentMenu->selected--;
-    } else if (evt == BTN_DOWN) {
-        currentMenu->selected++;
-    } else if (evt == BTN_LEFT) {
-        currentMenu->list->get(currentMenu->selected).left();
-    } else if (evt == BTN_RIGHT) {
-        currentMenu->list->get(currentMenu->selected).right();
-    }
+    menuHandleEvent(currentMenu, evt);
 }
 
 void menu_onDraw(U8G2 *u8g2) {
@@ -178,11 +166,7 @@ void saveRadioConfig() {
 
 void saveNeopixelConfig() {
     int ok =  prefs.putUChar("brightness", neopixelBrightnessConfig.current);
-    NeopixelConfiguration neopixelConfig;
-    neopixelConfig.brightness = neopixelBrightnessConfig.current;
-    neopixelConfig.operation = RANDOM_ALL;
-    for (int i = 0; i < NUM_LEDS; i++) neopixelConfig.colors[i] = 0;
-    sendNeopixelConfig(neopixelConfig);
+    sendNeopixelIdle(neopixelBrightnessConfig.current);
     if (ok) showPopupMenu("Saved!");
     else showPopupMenu("Failed.");
 }

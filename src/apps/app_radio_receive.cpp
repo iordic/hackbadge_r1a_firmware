@@ -31,20 +31,10 @@ String saveFileName = "";
 void radio_receive_onStart() {
     currentMenu = &mainListReceivedSignals;
     receivedMessages = new SimpleList<RFMessage>;
-    receiverParams = (RadioTaskParams *) malloc(sizeof(RadioTaskParams));
-    receiverParams->operation = RECEIVE_SIGNAL;
-    receiverParams->frequency = prefs.getUChar("frequency", FREQ_433MHZ);
-    receiverParams->preset = prefs.getUChar("preset", PRESET_AM650);
     queue = xQueueCreate(8, sizeof(RFMessage));
-    receiverParams->queueHandle = queue;
-    receiverParams->callerHandle = xTaskGetCurrentTaskHandle();
+    receiverParams = startRadioTask(RECEIVE_SIGNAL, queue, "RadioReceiverWorker", 2048, &radioReceiverTaskHandle);
     ledsBrightness = prefs.getUChar("brightness", DEFAULT_NEOPIXEL_BRIGHTNESS);
-    NeopixelConfiguration config;
-    config.operation = FIXED_COLOR;
-    config.brightness = ledsBrightness;
-     for (int i = 0; i < NUM_LEDS; i++) config.colors[i] = 0x000000ff;
-    sendNeopixelConfig(config);
-    xTaskCreatePinnedToCore(radio_task, "RadioReceiverWorker", 2048, receiverParams, 5, &radioReceiverTaskHandle, 1);
+    sendNeopixelSolid(0x000000ff, ledsBrightness);   // azul: modo RX
     // Create received signals menu
     createDynamicMenu(&mainListReceivedSignals, NULL, [](){return String(getFrequencyFromEnum(receiverParams->frequency)) + "MHz " + getPresetNameFromEnum(receiverParams->preset);}, [](){});
     createMenu(&receivedSignalsMenu, &mainListReceivedSignals, [](){
@@ -61,11 +51,7 @@ void radio_receive_onStart() {
 
 void radio_receive_onStop() {
     xTaskNotify(radioReceiverTaskHandle, RADIO_STOP, eSetValueWithOverwrite);
-    NeopixelConfiguration neopixelConfig;
-    neopixelConfig.brightness = ledsBrightness;
-    neopixelConfig.operation = RANDOM_ALL;
-    for (int i = 0; i < NUM_LEDS; i++) neopixelConfig.colors[i] = 0;
-    sendNeopixelConfig(neopixelConfig);
+    sendNeopixelIdle(ledsBrightness);
     vQueueDelete(queue);
     currentMenu = NULL;
 }
@@ -98,19 +84,7 @@ void radio_receive_onEvent(int evt) {
         }
         return;
     }
-    if (evt == BTN_BACK) {
-        currentMenu->list->get(currentMenu->selected).hold();
-    } else if (evt == BTN_OK) {
-        currentMenu->list->get(currentMenu->selected).click();
-    } else if (evt == BTN_UP) {
-        currentMenu->selected--;
-    } else if (evt == BTN_DOWN) {
-        currentMenu->selected++;
-    } else if (evt == BTN_LEFT) {
-        currentMenu->list->get(currentMenu->selected).left();
-    } else if (evt == BTN_RIGHT) {
-        currentMenu->list->get(currentMenu->selected).right();
-    }
+    menuHandleEvent(currentMenu, evt);
 }
 
 void replaySignal() {

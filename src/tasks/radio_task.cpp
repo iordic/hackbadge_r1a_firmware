@@ -4,7 +4,20 @@
 #include "devices/radio.h"
 #include "utils/radio_utils.h"
 
-extern TaskHandle_t radioTransmitterTaskHandle; 
+extern TaskHandle_t radioTransmitterTaskHandle;
+extern Preferences prefs;
+
+RadioTaskParams* startRadioTask(int operation, QueueHandle_t queue, const char* name,
+                                uint32_t stack, TaskHandle_t* handle) {
+    RadioTaskParams *params = (RadioTaskParams *) malloc(sizeof(RadioTaskParams));
+    params->operation = operation;
+    params->frequency = prefs.getUChar("frequency", FREQ_433MHZ);
+    params->preset = prefs.getUChar("preset", PRESET_AM650);
+    params->queueHandle = queue;
+    params->callerHandle = xTaskGetCurrentTaskHandle();
+    xTaskCreatePinnedToCore(radio_task, name, stack, params, 5, handle, 1);
+    return params;
+}
 
 ELECHOUSE_CC1101 *cc1101;
 BaseType_t xRadioResult;
@@ -16,7 +29,7 @@ static int currentPresetOpt;
 // Separada de radioQueue (task->UI de capturas) para no mezclar productores/consumidores.
 extern QueueHandle_t rawReplayQueue;
 
-void radio_task(void *pv) {extern TaskHandle_t radioTransmitterTaskHandle; 
+void radio_task(void *pv) {
     cc1101 = radio_get();
     RadioTaskParams *params = (RadioTaskParams *) pv;
     TaskHandle_t caller = params->callerHandle;   

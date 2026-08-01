@@ -34,14 +34,8 @@ void simple_tx_onStart() {
     row = 0;
     currentMenu = &simpleTxMainMenu;
     prefs.begin("configuration", true);
-    simpleTransmitterParams = (RadioTaskParams *) malloc(sizeof(RadioTaskParams));
-    simpleTransmitterParams->operation = SEND_SIGNAL;
-    simpleTransmitterParams->frequency = prefs.getUChar("frequency", FREQ_433MHZ);
-    simpleTransmitterParams->preset = prefs.getUChar("preset", PRESET_AM650);
     simpleTxQueue = xQueueCreate(8, sizeof(RFMessage));
-    simpleTransmitterParams->queueHandle = simpleTxQueue;
-    simpleTransmitterParams->callerHandle = xTaskGetCurrentTaskHandle();
-    xTaskCreatePinnedToCore(radio_task, "RadioTransmitterWorker", 2048, simpleTransmitterParams, 5, &radioTransmitterTaskHandle, 1);
+    simpleTransmitterParams = startRadioTask(SEND_SIGNAL, simpleTxQueue, "RadioTransmitterWorker", 2048, &radioTransmitterTaskHandle);
     // Top menu: choose between typing a code by hand or sending a saved one.
     // BACK to exit the app is handled in simple_tx_onEvent (needs onStop).
     createMenu(&simpleTxMainMenu, NULL, [](){
@@ -97,28 +91,13 @@ void simple_tx_onEvent(int evt) {
         if (evt == BTN_BACK) changeMenu(&simpleTxMainMenu);
         return;
     }
-    if (evt == BTN_BACK) {
-        currentMenu->list->get(currentMenu->selected).hold();
-    } else if (evt == BTN_OK) {
-        currentMenu->list->get(currentMenu->selected).click();
-    } else if (evt == BTN_UP) {
-        currentMenu->selected--;
-    } else if (evt == BTN_DOWN) {
-        currentMenu->selected++;
-    } else if (evt == BTN_LEFT) {
-        currentMenu->list->get(currentMenu->selected).left();
-    } else if (evt == BTN_RIGHT) {
-        currentMenu->list->get(currentMenu->selected).right();
-    }
+    menuHandleEvent(currentMenu, evt);
 }
 void simple_tx_onDraw(U8G2 *u8g2) {
     u8g2->clearBuffer();
     u8g2->setDrawColor(1);
     if (mainListSimpleTxFiles.list->isEmpty()) {
-        u8g2->setFont(u8g2_font_fub30_t_symbol);
-        u8g2->drawStr(25, 40, "404");
-        u8g2->setFont(u8g2_font_7x14_mr);
-        u8g2->drawStr(10, 54, "Folder is empty.");
+        drawEmptyFolder(u8g2);
         u8g2->sendBuffer();
         return;
     }

@@ -14,7 +14,18 @@ extern Menu* currentMenu;
 // Adapted snippet taken from esp8266_deauther
 void changeMenu(Menu* menu) {
     currentMenu = menu;
-    menu->selected = 0;  
+    menu->selected = 0;
+}
+
+void menuHandleEvent(Menu* menu, int evt) {
+    switch (evt) {
+    case BTN_BACK:  menu->list->get(menu->selected).hold();  break;
+    case BTN_OK:    menu->list->get(menu->selected).click(); break;
+    case BTN_UP:    menu->selected--; break;
+    case BTN_DOWN:  menu->selected++; break;
+    case BTN_LEFT:  menu->list->get(menu->selected).left();  break;
+    case BTN_RIGHT: menu->list->get(menu->selected).right(); break;
+    }
 }
 
 void createMenu(Menu* menu, Menu* parent, std::function<void()>build) {
@@ -123,6 +134,24 @@ void addMenuNodeSetting(Menu* menu, const char* ptr, SettingsValue* value, std::
     );
 }
 
+// Calcula el primer ítem visible desplazando la "ventana" para que el
+// seleccionado quede dentro, con topes arriba/abajo. Compartido por la lista
+// estática y la dinámica (antes estaba duplicado en ambas).
+static int computeScrollWindow(int selected, int total, int visibleCount, int firstItem) {
+    if (selected >= firstItem + visibleCount)
+        firstItem = selected - visibleCount + 1;
+    else if (selected < firstItem)
+        firstItem = selected;
+    if (firstItem < 0) firstItem = 0;
+    if (total > visibleCount) {
+        if (firstItem > total - visibleCount)
+            firstItem = total - visibleCount;
+    } else {
+        firstItem = 0;   // caben todos: sin scroll
+    }
+    return firstItem;
+}
+
 int drawMenu(U8G2 *u8g2, Menu* menu, int firstItem) {
     if (menu->type == MENU_LIST)
         return drawStaticMenu(u8g2, menu, firstItem);
@@ -135,8 +164,6 @@ int drawStaticMenu(U8G2 *u8g2, Menu* menu, int firstItem) {
     u8g2->setDrawColor(1);
     uint8_t xStartWritting = 0;
     const int visibleCount = 4;  // número de líneas visibles en pantalla
-    String tmp;
-    int tmpLen;
     int total = menu->list->size();
     // --- Seguridad: evitar índices fuera de rango ---
     if (menu->selected < 0)
@@ -144,25 +171,7 @@ int drawStaticMenu(U8G2 *u8g2, Menu* menu, int firstItem) {
     else if (menu->selected >= total)
         menu->selected = 0; // wrap around to the top
 
-    // --- Ajuste automático del scroll vertical (firstItem) ---
-    // Mueve la "ventana" visible cuando el elemento seleccionado sale del rango actual
-    if (menu->selected >= firstItem + visibleCount)
-        firstItem = menu->selected - visibleCount + 1;
-    else if (menu->selected < firstItem)
-        firstItem = menu->selected;
-
-    // --- Límite inferior (scroll hacia arriba) ---
-    if (firstItem < 0) firstItem = 0;
-
-    // --- Límite superior (scroll hacia abajo) ---
-    // Si hay más elementos que líneas visibles, el máximo desplazamiento es total - visibleCount
-    if (total > visibleCount) {
-        if (firstItem > total - visibleCount)
-            firstItem = total - visibleCount;
-    } else {
-        // Si caben todos, mantener siempre en 0
-        firstItem = 0;
-    }
+    firstItem = computeScrollWindow(menu->selected, total, visibleCount, firstItem);
     // --- Dibujar los ítems visibles ---
     for (int i = firstItem; i < total && i < firstItem + visibleCount; i++) {
         xStartWritting = 2;
@@ -183,9 +192,7 @@ int drawStaticMenu(U8G2 *u8g2, Menu* menu, int firstItem) {
 
 int drawDynamicList(U8G2 *u8g2, Menu* menu, int firstItem) {
     u8g2->setDrawColor(1);
-    /* TODO: unify redundant code */
-    int tmpLen, visibleCount = 3;  // número de líneas visibles en pantalla
-    String tmp;
+    int visibleCount = 3;  // número de líneas visibles en pantalla
     int total = menu->list->size();
     // --- Seguridad: evitar índices fuera de rango ---
     // (antes de pintar la cabecera, para que el contador nunca muestre 0/N ni N+1/N)
@@ -210,25 +217,7 @@ int drawDynamicList(U8G2 *u8g2, Menu* menu, int firstItem) {
     u8g2->drawStr(counterX, 8, counter.c_str());
     u8g2->setFont(u8g2_font_7x14_tr);
 
-    // --- Ajuste automático del scroll vertical (row) ---
-    // Mueve la "ventana" visible cuando el elemento seleccionado sale del rango actual
-    if (menu->selected >= firstItem + visibleCount)
-        firstItem = menu->selected - visibleCount + 1;
-    else if (menu->selected < firstItem)
-        firstItem = menu->selected;
-
-    // --- Límite inferior (scroll hacia arriba) ---
-    if (firstItem < 0) firstItem = 0;
-
-    // --- Límite superior (scroll hacia abajo) ---
-    // Si hay más elementos que líneas visibles, el máximo desplazamiento es total - visibleCount
-    if (total > visibleCount) {
-        if (firstItem > total - visibleCount)
-            firstItem = total - visibleCount;
-    } else {
-        // Si caben todos, mantener siempre en 0
-        firstItem = 0;
-    }
+    firstItem = computeScrollWindow(menu->selected, total, visibleCount, firstItem);
     // --- Dibujar los ítems visibles ---
     u8g2->setFont(u8g2_font_t0_12_mr);
     for (int i = firstItem; i < total && i < firstItem + visibleCount; i++) {
@@ -252,4 +241,11 @@ void showPopupMenu(const char* message) {
     u8g2->drawStr((128 - strWidth) / 2, 36, message);
     u8g2->sendBuffer();
     vTaskDelay(1000 / portTICK_PERIOD_MS);
+}
+
+void drawEmptyFolder(U8G2 *u8g2) {
+    u8g2->setFont(u8g2_font_fub30_t_symbol);
+    u8g2->drawStr(25, 40, "404");
+    u8g2->setFont(u8g2_font_7x14_mr);
+    u8g2->drawStr(10, 54, "Folder is empty.");
 }

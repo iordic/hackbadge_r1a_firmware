@@ -44,24 +44,13 @@ static void raw_freeAllMessages() {
 void radio_raw_onStart() {
     currentMenu = &mainListRawSignals;
     rawMessages = new SimpleList<RawSignal*>;
-    rawReceiverParams = (RadioTaskParams *) malloc(sizeof(RadioTaskParams));
-    rawReceiverParams->operation = RECEIVE_RAW;
-    rawReceiverParams->frequency = prefs.getUChar("frequency", FREQ_433MHZ);
-    rawReceiverParams->preset = prefs.getUChar("preset", PRESET_AM650);
     // Las colas transportan PUNTEROS a RawSignal (no la señal por valor).
     rawQueue = xQueueCreate(8, sizeof(RawSignal*));
     rawReplayQueue = xQueueCreate(4, sizeof(RawSignal*));
-    rawReceiverParams->queueHandle = rawQueue;
-    rawReceiverParams->callerHandle = xTaskGetCurrentTaskHandle();
+    rawReceiverParams = startRadioTask(RECEIVE_RAW, rawQueue, "RawReceiverWorker", 4096, &rawReceiverTaskHandle);
 
     ledsBrightness = prefs.getUChar("brightness", DEFAULT_NEOPIXEL_BRIGHTNESS);
-    NeopixelConfiguration config;
-    config.operation = FIXED_COLOR;
-    config.brightness = ledsBrightness;
-    for (int i = 0; i < NUM_LEDS; i++) config.colors[i] = 0x0000ff00; // verde: modo RAW
-    sendNeopixelConfig(config);
-
-    xTaskCreatePinnedToCore(radio_task, "RawReceiverWorker", 4096, rawReceiverParams, 5, &rawReceiverTaskHandle, 1);
+    sendNeopixelSolid(0x0000ff00, ledsBrightness);   // verde: modo RAW
 
     createDynamicMenu(&mainListRawSignals, NULL, [](){
         return "RAW " + String(getFrequencyFromEnum(rawReceiverParams->frequency)) + " " + getPresetNameFromEnum(rawReceiverParams->preset);
@@ -81,11 +70,7 @@ void radio_raw_onStart() {
 void radio_raw_onStop() {
     xTaskNotify(rawReceiverTaskHandle, RADIO_STOP, eSetValueWithOverwrite);
 
-    NeopixelConfiguration neopixelConfig;
-    neopixelConfig.brightness = ledsBrightness;
-    neopixelConfig.operation = RANDOM_ALL;
-    for (int i = 0; i < NUM_LEDS; i++) neopixelConfig.colors[i] = 0;
-    sendNeopixelConfig(neopixelConfig);
+    sendNeopixelIdle(ledsBrightness);
 
     // Drenamos punteros pendientes en la cola para no filtrarlos.
     RawSignal *pending = NULL;
@@ -131,19 +116,7 @@ void radio_raw_onEvent(int evt) {
         }
         return;
     }
-    if (evt == BTN_BACK) {
-        currentMenu->list->get(currentMenu->selected).hold();
-    } else if (evt == BTN_OK) {
-        currentMenu->list->get(currentMenu->selected).click();
-    } else if (evt == BTN_UP) {
-        currentMenu->selected--;
-    } else if (evt == BTN_DOWN) {
-        currentMenu->selected++;
-    } else if (evt == BTN_LEFT) {
-        currentMenu->list->get(currentMenu->selected).left();
-    } else if (evt == BTN_RIGHT) {
-        currentMenu->list->get(currentMenu->selected).right();
-    }
+    menuHandleEvent(currentMenu, evt);
 }
 
 void raw_replay() {

@@ -41,6 +41,22 @@ void sendNeopixelConfig(NeopixelConfiguration params) {
   xTaskNotify(neopixelWorkerHandle, 1, eSetValueWithOverwrite);
 }
 
+void sendNeopixelSolid(uint32_t color, uint8_t brightness) {
+  NeopixelConfiguration cfg;
+  cfg.operation = FIXED_COLOR;
+  cfg.brightness = brightness;
+  for (int i = 0; i < NUM_LEDS; i++) cfg.colors[i] = color;
+  sendNeopixelConfig(cfg);
+}
+
+void sendNeopixelIdle(uint8_t brightness) {
+  NeopixelConfiguration cfg;
+  cfg.operation = RANDOM_ALL;
+  cfg.brightness = brightness;
+  for (int i = 0; i < NUM_LEDS; i++) cfg.colors[i] = 0;
+  sendNeopixelConfig(cfg);
+}
+
 void startKeyboard(String *fieldToFill) {
   keyBoardOnScreen = true;
   keyboardInputText = fieldToFill;

@@ -37,6 +37,11 @@ typedef struct {
 } RawSignal;
 
 void radio_task(void *pv);
+// Arranca un worker radio_task en el core 1 (prioridad 5): reserva y rellena los
+// RadioTaskParams leyendo freq/preset de `prefs` (que debe estar abierto), y
+// devuelve el puntero para que la app pueda consultar freq/preset después.
+RadioTaskParams* startRadioTask(int operation, QueueHandle_t queue, const char* name,
+                                uint32_t stack, TaskHandle_t* handle);
 void loadConfiguration(int frequencyOption, int preset);
 void lockJamming();
 void radioReceiveSignal();
