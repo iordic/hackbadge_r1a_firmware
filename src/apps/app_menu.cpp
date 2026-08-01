@@ -13,12 +13,10 @@
 extern App app_splash;
 extern App app_snake;
 extern App app_jammer;
-extern App app_radio_receive;
-extern App app_radio_raw;
-extern App app_raw_tx;
+extern App app_rcswitch;
+extern App app_raw;
 extern App app_wifi_beacon_spam;
 extern App app_about;
-extern App app_simple_tx;
 
 Menu mainMenu;
 // Submenus
@@ -27,9 +25,6 @@ Menu bleMenu;
 Menu wifiMenu;
 Menu gamesMenu;
 Menu settingsMenu;
-// Subghz submenus
-Menu radioTransmitMenu;
-Menu radioReceiveMenu;
 // settings submenus
 Menu radioSettingsMenu;
 Menu neopixelSettingsMenu;
@@ -69,7 +64,8 @@ void menu_onStart() {
     createMenu(&gamesMenu, &mainMenu, []() {
         addMenuNode(&gamesMenu, &CURSOR_DOWN_ICON, MENU_ITEM_SNAKE, &mainMenu, &app_snake);
     });
-    // Subghz submenu
+    // Subghz submenu: apps directas (RC-Switch, Raw, Jammer); cada una gestiona
+    // RX y TX internamente.
     createMenu(&subghzMenu, &mainMenu, []() {
         RadioTaskParams *params = (RadioTaskParams *) malloc(sizeof(RadioTaskParams));
         params->operation = CHECK;
@@ -77,22 +73,12 @@ void menu_onStart() {
         xTaskCreatePinnedToCore(radio_task, "RadioCheckWorker", 2048, params, 1, NULL, 1);
         xTaskNotifyWait(0, 0, &availableRadio, portMAX_DELAY);
         if (availableRadio) {
-            addMenuNode(&subghzMenu, &UP_ICON, MENU_ITEM_TRANSMIT, &radioTransmitMenu);
-            addMenuNode(&subghzMenu, &DOWN_ICON, MENU_ITEM_RECEIVE, &radioReceiveMenu);
+            addMenuNode(&subghzMenu, &SIMPLE_TRANSMIT_ICON, MENU_ITEM_RCSWITCH, &mainMenu, &app_rcswitch);
+            addMenuNode(&subghzMenu, &RAW_ICON, MENU_ITEM_RAW, &mainMenu, &app_raw);
+            addMenuNode(&subghzMenu, &MEGAPHONE_ICON, MENU_ITEM_JAMMER, &mainMenu, &app_jammer);
         } else {
             addMenuNode(&subghzMenu, &ERROR_ICON, MENU_ITEM_RADIO_NOT_FOUND, &mainMenu);
         }
-    });
-    // Radio transmit submenu
-    createMenu(&radioTransmitMenu, &subghzMenu, []() {
-        addMenuNode(&radioTransmitMenu, &MEGAPHONE_ICON, MENU_ITEM_JAMMER, &subghzMenu, &app_jammer);
-        addMenuNode(&radioTransmitMenu, &SIMPLE_TRANSMIT_ICON, MENU_ITEM_SIMPLE_TX, &subghzMenu, &app_simple_tx);
-        addMenuNode(&radioTransmitMenu, &RAW_ICON, MENU_ITEM_RAW_TX, &subghzMenu, &app_raw_tx);
-    });
-    // Radio receive submenu
-    createMenu(&radioReceiveMenu, &subghzMenu, []() {
-        addMenuNode(&radioReceiveMenu, &SIMPLE_RECEIVE_ICON, MENU_ITEM_SIMPLE_RX, &subghzMenu, &app_radio_receive);
-        addMenuNode(&radioReceiveMenu, &RAW_ICON, MENU_ITEM_RAW_RX, &subghzMenu, &app_radio_raw);
     });
     // Settings submenu
     createMenu(&settingsMenu, &mainMenu, []() {
@@ -133,8 +119,6 @@ void menu_onStart() {
     subghzMenu.build();
     gamesMenu.build();
     settingsMenu.build();
-    radioTransmitMenu.build();
-    radioReceiveMenu.build();
     bleMenu.build();
     wifiMenu.build();
     radioSettingsMenu.build();
@@ -147,19 +131,7 @@ void menu_onStop() {
 }
 
 void menu_onEvent(int evt) {
-    if (evt == BTN_BACK) {
-        currentMenu->list->get(currentMenu->selected).hold();
-    } else if (evt == BTN_OK) {
-        currentMenu->list->get(currentMenu->selected).click();
-    } else if (evt == BTN_UP) {
-        currentMenu->selected--;
-    } else if (evt == BTN_DOWN) {
-        currentMenu->selected++;
-    } else if (evt == BTN_LEFT) {
-        currentMenu->list->get(currentMenu->selected).left();
-    } else if (evt == BTN_RIGHT) {
-        currentMenu->list->get(currentMenu->selected).right();
-    }
+    menuHandleEvent(currentMenu, evt);
 }
 
 void menu_onDraw(U8G2 *u8g2) {
@@ -178,11 +150,7 @@ void saveRadioConfig() {
 
 void saveNeopixelConfig() {
     int ok =  prefs.putUChar("brightness", neopixelBrightnessConfig.current);
-    NeopixelConfiguration neopixelConfig;
-    neopixelConfig.brightness = neopixelBrightnessConfig.current;
-    neopixelConfig.operation = RANDOM_ALL;
-    for (int i = 0; i < NUM_LEDS; i++) neopixelConfig.colors[i] = 0;
-    sendNeopixelConfig(neopixelConfig);
+    sendNeopixelIdle(neopixelBrightnessConfig.current);
     if (ok) showPopupMenu("Saved!");
     else showPopupMenu("Failed.");
 }

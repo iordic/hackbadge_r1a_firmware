@@ -154,9 +154,11 @@ void generateRandomWiFiMac(uint8_t *mac) {
 
 void nextChannel() {
     if (sizeof(channels) > 1) {
+        // Envolvemos ANTES de indexar: así channels[channelIndex] nunca se sale
+        // de rango (antes leía channels[sizeof] al usar '>' en vez de '>=').
+        if (channelIndex >= sizeof(channels)) channelIndex = 0;
         uint8_t ch = channels[channelIndex];
         channelIndex++;
-        if (channelIndex > sizeof(channels)) channelIndex = 0;
 
         if (ch != wifi_channel && ch >= 1 && ch <= 14) {
             wifi_channel = ch;
