@@ -34,6 +34,9 @@ void splash_onDraw(U8G2 *u8g2) {
     BAT_SPLASH.chkAnimation(true);
     u8g2->drawXBM(BAT_SPLASH.getXpos(), BAT_SPLASH.getYpos(), BAT_SPLASH.getWidth(), BAT_SPLASH.getHeight(), bat_splash_bits[BAT_SPLASH.getCurrentFrame()]); 
     u8g2->drawFrame(34, 30, 94, 34);
+    // Modo sólido: la fuente monoespaciada pinta su fondo y "borra" la línea del
+    // marco por detrás del texto (no dependemos del estado global de otras apps).
+    u8g2->setFontMode(0);
     u8g2->setFont(u8g2_font_5x8_mf);
     u8g2->drawStr(38, 32, "hackbat:-$ whoami");
     u8g2->setFont(u8g2_font_littlemissloudonbold_tr);

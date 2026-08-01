@@ -61,6 +61,7 @@ void jammer_onDraw(U8G2 *u8g2) {
   u8g2->drawStr(65, 40, getPresetNameFromEnum(preset).c_str());
   u8g2->setFont(u8g2_font_tiny5_tr);
   u8g2->drawButtonUTF8(80, 55, U8G2_BTN_BW2, 0,  2,  2, "Hold to exit");
+  u8g2->setFontMode(0);   // drawButtonUTF8 deja el modo en transparente: lo restauramos
   u8g2->sendBuffer();
 }
 
