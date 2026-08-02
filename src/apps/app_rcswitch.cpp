@@ -1,6 +1,5 @@
 #include "app.h"
-#include "app_rcswitch.h"
-#include "app_menu.h"
+#include "apps.h"
 #include "literals.h"
 
 #include <SimpleList.h>
@@ -24,7 +23,6 @@
 //   - Manual  : SEND_SIGNAL, teclear value/bits/protocol y enviar.
 // ---------------------------------------------------------------------------
 
-extern App app_menu;
 extern Preferences prefs;
 extern Menu* currentMenu;
 extern Menu subghzMenu;   // para volver al submenú Sub-GHz al salir

@@ -1,7 +1,7 @@
 #include "ui_task.h"
 #include "tasks/leds_task.h"
+#include "apps/apps.h"
 
-extern App app_splash;
 App *currentApp = &app_splash;
 
 uint8_t ledsBrightness;

@@ -1,8 +1,7 @@
 #include "literals.h"
 #include "app.h"
-#include "app_jammer.h"
+#include "apps.h"
 #include "devices/display.h"
-#include "app_menu.h"
 
 #include "tasks/ui_task.h"
 #include "tasks/leds_task.h"
@@ -11,8 +10,6 @@
 #include "utils/radio_utils.h"
 #include "config/sprites.h"
 #include "config/constants.h"
-
-extern App app_menu;
 TaskHandle_t jammerTaskHandle = NULL;
 float jammer_frequency;
 int preset;

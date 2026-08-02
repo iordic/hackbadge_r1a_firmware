@@ -1,6 +1,5 @@
 #include "app.h"
-#include "app_raw.h"
-#include "app_menu.h"
+#include "apps.h"
 #include "literals.h"
 
 #include <SimpleList.h>
@@ -25,7 +24,6 @@
 // las de envío se ceden al task (él las libera). Ver notas de ownership abajo.
 // ---------------------------------------------------------------------------
 
-extern App app_menu;
 extern Preferences prefs;
 extern Menu* currentMenu;
 extern Menu subghzMenu;   // para volver al submenú Sub-GHz al salir

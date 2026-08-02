@@ -1,8 +1,8 @@
 #include "literals.h"
 #include "app.h"
+#include "apps.h"
 #include "config/io_config.h"
 #include "config/constants.h"
-#include "app_menu.h"
 
 #include "tasks/ui_task.h"
 #include "tasks/radio_task.h"
@@ -10,13 +10,10 @@
 #include "utils/menu.h"
 #include "utils/radio_utils.h"
 
-extern App app_splash;
-extern App app_snake;
-extern App app_jammer;
-extern App app_rcswitch;
-extern App app_raw;
-extern App app_wifi_beacon_spam;
-extern App app_about;
+// Definidas más abajo; los menús de ajustes las referencian antes de definirse.
+void saveRadioConfig();
+void saveNeopixelConfig();
+void saveProfileConfig();
 
 Menu mainMenu;
 // Submenus

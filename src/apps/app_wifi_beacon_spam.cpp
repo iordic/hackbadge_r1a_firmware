@@ -1,11 +1,8 @@
 #include "literals.h"
 #include "app.h"
+#include "apps.h"
 #include "devices/display.h"
-#include "app_menu.h"
-#include "app_wifi_beacon_spam.h"
 #include "tasks/wifi_attack_task.h"
-
-extern App app_menu;
 
 TaskHandle_t beaconSpamTaskHandle = NULL;
 

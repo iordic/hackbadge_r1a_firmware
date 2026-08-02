@@ -1,8 +1,14 @@
 /* Taken & adapted from: https://github.com/johnpathe/arduinoSnake */
 #include "devices/display.h"
 #include "app.h"
-#include "app_menu.h"
-#include "app_snake.h"
+#include "apps.h"
+
+// Helpers internos del juego (antes declarados en app_snake.h).
+bool onSnakeBody(int x, int y);
+void logic();
+void johnBox(U8G2 *u8g2, int x, int y);
+void johnDisc(U8G2 *u8g2, int x, int y);
+void restartGame();
 
 #define HEAD_STOP 0
 #define HEAD_UP 1
@@ -10,8 +16,6 @@
 #define HEAD_LEFT 3
 #define HEAD_RIGHT 4
 int heading = HEAD_STOP; // 0-stopped,1-up,2-down,3-left,4-right
-
-extern App app_menu;
 
 int snakeHead[2] = {5,6}; // starting spot
 
