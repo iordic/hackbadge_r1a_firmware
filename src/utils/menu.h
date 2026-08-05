@@ -1,6 +1,8 @@
 #ifndef MENU_UTILS_H_
 #define MENU_UTILS_H_
 #include <U8g2lib.h>
+#include <functional>
+#include <SimpleList.h>
 #include "app.h"
 
 struct SettingsValue {

@@ -1,11 +1,10 @@
 
 #include "app.h"
+#include "apps.h"
 #include "devices/display.h"
-#include "app_about.h"
 #include "config/sprites.h"
 #include "literals.h"
 
-extern App app_menu;
 extern L33T_Animation PHANTOM;
 
 void about_onStart() {}

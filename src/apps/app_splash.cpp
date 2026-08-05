@@ -1,11 +1,10 @@
 
 #include "app.h"
+#include "apps.h"
 #include "devices/display.h"
-#include "app_splash.h"
 #include "config/sprites.h"
 #include "tasks/ui_task.h"
 
-extern App app_menu;
 extern L33T_Animation BAT_SPLASH;
 extern Preferences prefs;
 UserInfo userInfo;
