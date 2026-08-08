@@ -67,6 +67,7 @@ void menu_onStart() {
     // GPIO submenu
     createMenu(&gpioMenu, &mainMenu, []() {
         addMenuNode(&gpioMenu, &I2C_ICON, MENU_ITEM_I2C, &mainMenu, &app_i2c_tools);
+        addMenuNode(&gpioMenu, &RADIO_TUNER_ICON, MENU_ITEM_FM_TUNER, &mainMenu, &app_fm_tunner);
     });
     // Subghz submenu: apps directas (RC-Switch, Raw, Jammer); cada una gestiona
     // RX y TX internamente.

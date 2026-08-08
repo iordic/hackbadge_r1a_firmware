@@ -29,6 +29,11 @@ const uint16_t REPLAY_ICON PROGMEM = 0x00cc;
 const uint16_t USER_ICON PROGMEM = 0x00e5;
 const uint16_t GPIO_ICON PROGMEM = 0x00ac;
 const uint16_t I2C_ICON PROGMEM = 0x00ee;
+const uint16_t RADIO_TUNER_ICON PROGMEM = 0x00b6;
+// Icons at u8g2_font_siji_t_6x10
+const uint16_t VOLUME_ICON PROGMEM = 0xe152;
+const uint16_t VOLUME_UP_ICON PROGMEM = 0xe060;
+const uint16_t VOLUME_DOWN_ICON PROGMEM = 0xe061;
 
 // Menu item labels
 const char MENU_ITEM_SUBGHZ[] PROGMEM = "Subghz";
@@ -37,6 +42,7 @@ const char MENU_ITEM_WIFI[] PROGMEM = "WiFi";
 const char MENU_ITEM_GAMES[] PROGMEM = "Games";
 const char MENU_ITEM_GPIO[] PROGMEM = "GPIO";
 const char MENU_ITEM_I2C[] PROGMEM = "I2C Tools";
+const char MENU_ITEM_FM_TUNER[] PROGMEM = "FM Tuner";
 const char MENU_ITEM_SETTINGS[] PROGMEM = "Settings";
 const char MENU_ITEM_RADIO_NOT_FOUND[] PROGMEM = "cc1101 not found";
 const char MENU_ITEM_JAMMER[] PROGMEM = "Jammer";
