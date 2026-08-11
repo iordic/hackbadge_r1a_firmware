@@ -20,6 +20,29 @@ struct RDA5807Config {
     uint16_t frequency = 8800; // 8800 to 10800 for FM band
 } rda5807_config;
 
+// Modo de sintonía que cicla el botón OK. La frecuencia se guarda en unidades
+// de 10 kHz (8800 = 88.00 MHz), así que FINE salta 0.1 MHz y FAST 1 MHz.
+enum FmMode { FM_FINE, FM_FAST, FM_SCAN };
+FmMode fm_mode = FM_FINE;
+
+const char *fm_modeName(FmMode m) {
+  switch (m) {
+    case FM_FINE: return "Fine";
+    case FM_FAST: return "Fast";
+    case FM_SCAN: return "Scan";
+  }
+  return "";
+}
+
+// Sincroniza el chip y descarta los datos RDS de la emisora anterior.
+void fm_retune(uint16_t frequency) {
+  rda5807_config.frequency = frequency;
+  rda5807.setFrequency(frequency);
+  rdsReceived = false;
+  bufferStatioName[0] = '\0';
+  bufferRdsMsg[0] = '\0';
+}
+
 void fm_tunner_onStart() {
     rda5807.setup();
     rda5807.setMono(true);
@@ -37,7 +60,9 @@ void fm_tunner_onEvent(int evt) {
     extern App *currentApp;
     currentApp = &app_menu;
     currentApp->onStart();
-  } if (evt == BTN_UP) {
+  } else if (evt == BTN_OK) {
+    fm_mode = (FmMode)((fm_mode + 1) % 3);
+  } else if (evt == BTN_UP) {
     if (rda5807_config.volume < 15) {
       rda5807_config.volume++;
       rda5807.setVolume(rda5807_config.volume);
@@ -48,14 +73,26 @@ void fm_tunner_onEvent(int evt) {
       rda5807.setVolume(rda5807_config.volume);
     }
   } else if (evt == BTN_LEFT) {
-    if (rda5807_config.frequency > 8800) {
-      rda5807_config.frequency -= 10;
-      rda5807.setFrequency(rda5807_config.frequency);
+    if (fm_mode == FM_SCAN) {
+      // Busca la emisora anterior; seek bloquea hasta que el chip termina.
+      rda5807.seek(RDA_SEEK_WRAP, RDA_SEEK_DOWN, NULL);
+      fm_retune(rda5807.getFrequency());
+    } else {
+      uint16_t step = (fm_mode == FM_FAST) ? 100 : 10;
+      if (rda5807_config.frequency >= 8800 + step) {
+        fm_retune(rda5807_config.frequency - step);
+      }
     }
   } else if (evt == BTN_RIGHT) {
-    if (rda5807_config.frequency < 10800) {
-      rda5807_config.frequency += 10;
-      rda5807.setFrequency(rda5807_config.frequency);
+    if (fm_mode == FM_SCAN) {
+      // Busca la emisora siguiente.
+      rda5807.seek(RDA_SEEK_WRAP, RDA_SEEK_UP, NULL);
+      fm_retune(rda5807.getFrequency());
+    } else {
+      uint16_t step = (fm_mode == FM_FAST) ? 100 : 10;
+      if (rda5807_config.frequency + step <= 10800) {
+        fm_retune(rda5807_config.frequency + step);
+      }
     }
   }
 }
@@ -102,7 +139,7 @@ void fm_tunner_onDraw(U8G2 *u8g2) {
     }
     u8g2->drawStr(2, 8, "rssi");
     u8g2->drawStr(24, 8, String(rda5807.getRssi()).c_str());
-    u8g2->drawStr(50, 9, "Scan");
+    u8g2->drawStr(50, 9, fm_modeName(fm_mode));
     snprintf(volbuf, sizeof(volbuf), "%02u", rda5807_config.volume);
     u8g2->drawStr(108, 9, volbuf);
     u8g2->setFont(u8g2_font_siji_t_6x10);
