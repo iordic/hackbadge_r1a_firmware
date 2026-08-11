@@ -137,6 +137,7 @@ void fm_tunner_onDraw(U8G2 *u8g2) {
       u8g2->setFont(u8g2_font_6x13_tr);
       u8g2->drawStr(16, 50, "No RDS data");
     }
+    u8g2->setFont(u8g2_font_5x8_tr);
     u8g2->drawStr(2, 8, "rssi");
     u8g2->drawStr(24, 8, String(rda5807.getRssi()).c_str());
     u8g2->drawStr(50, 9, fm_modeName(fm_mode));
