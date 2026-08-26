@@ -13,6 +13,7 @@ extern App app_jammer;
 extern App app_rcswitch;
 extern App app_raw;
 extern App app_wifi_beacon_spam;
+extern App app_evil_portal;
 extern App app_i2c_tools;
 extern App app_fm_tunner;
 #endif

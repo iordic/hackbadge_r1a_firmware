@@ -116,6 +116,7 @@ void menu_onStart() {
     // WiFi submenu
     createMenu(&wifiMenu, &mainMenu, []() {
         addMenuNode(&wifiMenu, &SPAM_ICON, MENU_ITEM_WIFI_BEACON_SPAM, &mainMenu, &app_wifi_beacon_spam);
+        addMenuNode(&wifiMenu, &USER_ICON, MENU_ITEM_EVIL_PORTAL, &mainMenu, &app_evil_portal);
     });
 
     if (!currentMenu) currentMenu = &mainMenu;

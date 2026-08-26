@@ -22,6 +22,8 @@ class FileUtils {
     public:
         static bool begin();
         static bool save(String path, String fileName, uint8_t* data, size_t size);
+        // Añade una línea de texto al final del fichero (lo crea si no existe).
+        static bool appendLine(String path, String fileName, const String& line);
         static bool remove(String path, String fileName);
         static bool load(String path, String fileName, uint8_t* data, size_t size);
         static SimpleList<String>* listFiles(String path);

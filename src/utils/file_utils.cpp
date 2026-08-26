@@ -38,6 +38,20 @@ bool FileUtils::save(String path, String fileName, uint8_t* data, size_t size) {
     return written == size;
 }
 
+bool FileUtils::appendLine(String path, String fileName, const String& line) {
+    _mkdirs(path);
+    String full_path = path;
+    if (!full_path.endsWith("/"))
+        full_path += "/";
+    full_path += fileName;
+    File file = LittleFS.open(full_path, FILE_APPEND);
+    if (!file)
+        return false;
+    file.println(line);
+    file.close();
+    return true;
+}
+
 bool FileUtils::remove(String path, String fileName) {
     String full_path = path;
     if (path.length() > 0 && !full_path.endsWith("/")) {
