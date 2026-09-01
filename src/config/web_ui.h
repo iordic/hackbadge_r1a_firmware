@@ -56,6 +56,20 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .act{display:flex;align-items:center;gap:10px}.act .n{color:var(--fnt);font-size:12px;margin-left:auto}
 .soon{color:var(--mut);text-align:center;padding:30px 16px;font-size:13px}
 .soon b{color:var(--ac);display:block;margin-bottom:6px;letter-spacing:.1em;text-transform:uppercase;font-size:11px}
+.storage{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.fbar{flex:1 1 180px;height:8px;border-radius:5px;background:var(--panel2);border:1px solid var(--bd);overflow:hidden}
+.fbar>span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--ac),var(--ac2))}
+.storage .lbl{font-size:12.5px;color:var(--mut)}.storage .lbl b{color:var(--tx);font-weight:500}
+.fdir{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--fnt);padding:14px 2px 5px;display:flex;align-items:center;gap:8px}
+.fdir:first-child{padding-top:2px}.fdir::after{content:"";flex:1;height:1px;background:var(--bd)}
+.frow{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--bd);border-radius:8px;background:var(--panel2);margin-top:8px}
+.frow .fn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13.5px}
+.frow .fs{margin-left:auto;color:var(--fnt);font-size:12.5px;flex:none}
+.frow .fb{display:flex;gap:6px;flex:none}
+.rb{width:30px;height:30px;display:grid;place-items:center;border-radius:6px;border:1px solid var(--bd);background:var(--raised);color:var(--mut);cursor:pointer;text-decoration:none}
+.rb:hover{color:var(--tx);border-color:var(--bd2)}.rb.del:hover{color:var(--dg);border-color:var(--dg)}
+.rb svg{width:15px;height:15px}
+input[type=file]{width:100%;font:inherit;font-size:13px;color:var(--mut)}
 .hide[hidden]{display:none}
 #gate{position:fixed;inset:0;z-index:20;background:var(--bg);display:grid;place-items:center;padding:20px}
 #gate[hidden]{display:none}
@@ -119,7 +133,22 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 </div></div>
 <div class="act"><button class="btn pri" id="save">Save to device</button><span class="n">network changes apply on next start</span></div>
 </section>
-<section data-p="files" hidden><div class="card"><div class="bd"><div class="soon"><b>Files</b>File manager ships in the next build.</div></div></div></section>
+<section data-p="files" hidden>
+<div class="card"><div class="hd"><div class="eb">LittleFS</div><h2>Storage</h2></div><div class="bd">
+<div class="storage"><span class="lbl"><b id="stUsed">—</b> used</span>
+<div class="fbar"><span id="stBar"></span></div><span class="lbl">of <b id="stTotal">—</b></span></div>
+</div></div>
+<div class="card"><div class="hd"><div class="eb">Browse</div><h2>Saved files</h2><span class="n" id="fSub"></span></div>
+<div class="bd" id="fList"><div class="soon">Loading…</div></div></div>
+<div class="card"><div class="hd"><div class="eb">Upload</div><h2>Add a file</h2></div><div class="bd">
+<div class="f"><label>Folder</label><select id="upDir">
+<option value="/subghz/rc-switch">/subghz/rc-switch</option>
+<option value="/subghz/raw">/subghz/raw</option>
+<option value="/evilportal">/evilportal</option></select></div>
+<div class="f"><label>File</label><input type="file" id="upFile"></div>
+<div class="act"><button class="btn pri" id="upBtn">Upload</button><span class="n" id="upNote"></span></div>
+</div></div>
+</section>
 <section data-p="ota" hidden><div class="card"><div class="bd"><div class="soon"><b>OTA Update</b>Over-the-air flashing ships in a later build.</div></div></div></section>
 </main>
 </div>
@@ -139,7 +168,34 @@ $$("#seg button").forEach(function(b){b.addEventListener("click",function(){setM
 // tabs
 $$(".tab").forEach(function(t){t.addEventListener("click",function(){
 $$(".tab").forEach(function(x){x.setAttribute("aria-selected",x===t);});
-$$("section").forEach(function(p){p.hidden=(p.dataset.p!==t.dataset.t);});});});
+$$("section").forEach(function(p){p.hidden=(p.dataset.p!==t.dataset.t);});
+if(t.dataset.t=="files")loadFiles();});});
+// files
+function fmtSize(b){if(b<1024)return b+" B";if(b<1048576)return (b/1024).toFixed(1)+" KB";return (b/1048576).toFixed(2)+" MB";}
+function loadFiles(){$("#fList").innerHTML='<div class="soon">Loading…</div>';
+fetch("/api/files").then(function(r){return r.json();}).then(function(d){
+$("#stUsed").textContent=fmtSize(d.used);$("#stTotal").textContent=fmtSize(d.total);
+$("#stBar").style.width=Math.max(1,d.used/d.total*100).toFixed(1)+"%";
+var l=$("#fList");l.innerHTML="";
+if(!d.files.length){l.innerHTML='<div class="soon">No files stored.</div>';$("#fSub").textContent="0 files";return;}
+$("#fSub").textContent=d.files.length+(d.files.length==1?" file":" files");
+var dirs=[];d.files.forEach(function(f){var dir=f.path.substring(0,f.path.lastIndexOf("/"));if(dirs.indexOf(dir)<0)dirs.push(dir);});
+dirs.forEach(function(dir){var h=document.createElement("div");h.className="fdir";h.textContent=dir;l.appendChild(h);
+d.files.filter(function(f){return f.path.substring(0,f.path.lastIndexOf("/"))==dir;}).forEach(function(f){
+var row=document.createElement("div");row.className="frow";
+row.innerHTML='<span class="fn">'+f.name+'</span><span class="fs">'+fmtSize(f.size)+'</span><span class="fb">'
++'<a class="rb" href="/api/file?path='+encodeURIComponent(f.path)+'" title="Download"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 4v10m0 0 4-4m-4 4-4-4" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 18h14" stroke-linecap="round"/></svg></a>'
++'<button class="rb del" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 7h14M9 7V5h6v2M7 7l1 13h8l1-13" stroke-linecap="round" stroke-linejoin="round"/></svg></button></span>';
+row.querySelector(".del").addEventListener("click",function(){delFile(f.path,f.name);});l.appendChild(row);});});
+}).catch(function(){$("#fList").innerHTML='<div class="soon">Failed to load.</div>';});}
+function delFile(path,name){if(!confirm("Delete "+name+"?"))return;
+fetch("/api/file/delete?path="+encodeURIComponent(path),{method:"POST"})
+.then(function(r){if(!r.ok)throw 0;toast("Deleted "+name);loadFiles();}).catch(function(){toast("Delete failed");});}
+$("#upBtn").addEventListener("click",function(){var f=$("#upFile").files[0];if(!f){toast("Choose a file");return;}
+var fd=new FormData();fd.append("file",f,f.name);$("#upBtn").disabled=true;$("#upNote").textContent="Uploading…";
+fetch("/api/file?dir="+encodeURIComponent($("#upDir").value),{method:"POST",body:fd})
+.then(function(r){if(!r.ok)throw 0;toast("Uploaded "+f.name);$("#upFile").value="";loadFiles();})
+.catch(function(){toast("Upload failed");}).then(function(){$("#upBtn").disabled=false;$("#upNote").textContent="";});});
 // toast
 var tt;function toast(m){$("#tmsg").textContent=m;$("#toast").classList.add("show");clearTimeout(tt);tt=setTimeout(function(){$("#toast").classList.remove("show");},2200);}
 // login

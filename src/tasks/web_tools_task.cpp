@@ -2,6 +2,8 @@
 #include <WiFi.h>
 #include <WebServer.h>
 #include <ESPmDNS.h>
+#include <FS.h>
+#include <LittleFS.h>
 #include <Preferences.h>
 #include <esp_random.h>
 #include "config/constants.h"
@@ -133,6 +135,94 @@ static void handleSetConfig() {
     webServer.send(200, "application/json", "{\"ok\":true}");
 }
 
+// -------- Gestión de ficheros (LittleFS) --------
+
+// Directorios que expone el gestor (coinciden con donde guardan las apps).
+static const char *WEBTOOLS_DIRS[] = {SIMPLE_TRANSCEIVER_PATH, RAW_TRANSCEIVER_PATH, EVIL_PORTAL_PATH};
+
+// Rechaza rutas con traversal; exige ruta absoluta.
+static bool safePath(const String &p) { return p.startsWith("/") && p.indexOf("..") < 0; }
+
+static void appendDirFiles(const char *dir, String &j, bool &first) {
+    File root = LittleFS.open(dir, "r");
+    if (!root || !root.isDirectory()) return;
+    for (File f = root.openNextFile(); f; f = root.openNextFile()) {
+        if (f.isDirectory()) continue;
+        String nm = f.name();
+        String full = nm.startsWith("/") ? nm : (String(dir) + "/" + nm);
+        String base = full.substring(full.lastIndexOf('/') + 1);
+        if (!first) j += ",";
+        j += "{\"path\":\"" + jsonEsc(full) + "\",\"name\":\"" + jsonEsc(base) +
+             "\",\"size\":" + String(f.size()) + "}";
+        first = false;
+    }
+}
+
+// GET /api/files: uso de almacenamiento + lista de ficheros de los dirs conocidos.
+static void handleFilesList() {
+    if (!checkAuth()) { webServer.send(401, "application/json", "{\"ok\":false}"); return; }
+    String j = "{\"total\":" + String((uint32_t) LittleFS.totalBytes()) +
+               ",\"used\":" + String((uint32_t) LittleFS.usedBytes()) + ",\"files\":[";
+    bool first = true;
+    for (auto dir : WEBTOOLS_DIRS) appendDirFiles(dir, j, first);
+    j += "]}";
+    webServer.send(200, "application/json", j);
+}
+
+// GET /api/file?path=...: descarga (stream) de un fichero.
+static void handleFileDownload() {
+    if (!checkAuth()) { webServer.send(401, "text/plain", "unauthorized"); return; }
+    String path = webServer.arg("path");
+    if (!safePath(path) || !LittleFS.exists(path)) { webServer.send(404, "text/plain", "not found"); return; }
+    File f = LittleFS.open(path, "r");
+    if (!f) { webServer.send(404, "text/plain", "not found"); return; }
+    String name = path.substring(path.lastIndexOf('/') + 1);
+    webServer.sendHeader("Content-Disposition", "attachment; filename=\"" + name + "\"");
+    webServer.streamFile(f, "application/octet-stream");
+    f.close();
+}
+
+// POST /api/file/delete?path=...: borra un fichero.
+static void handleFileDelete() {
+    if (!checkAuth()) { webServer.send(401, "application/json", "{\"ok\":false}"); return; }
+    String path = webServer.arg("path");
+    if (!safePath(path)) { webServer.send(400, "application/json", "{\"ok\":false}"); return; }
+    bool ok = LittleFS.remove(path);
+    webServer.send(ok ? 200 : 500, "application/json", ok ? "{\"ok\":true}" : "{\"ok\":false}");
+}
+
+// POST /api/file?dir=...: subida (multipart). El callback escribe por chunks; el
+// handler final responde. Auth comprobada al empezar la subida.
+static File s_uploadFile;
+static bool s_uploadOk = false;
+
+static void handleUpload() {
+    HTTPUpload &up = webServer.upload();
+    if (up.status == UPLOAD_FILE_START) {
+        s_uploadOk = false;
+        if (!checkAuth()) return;
+        String dir = webServer.hasArg("dir") ? webServer.arg("dir") : String(RAW_TRANSCEIVER_PATH);
+        if (!safePath(dir)) return;
+        // Solo el nombre base (evita traversal desde el cliente).
+        String fname = up.filename;
+        int slash = fname.lastIndexOf('/');
+        if (slash >= 0) fname = fname.substring(slash + 1);
+        if (fname.isEmpty() || fname.indexOf("..") >= 0) return;
+        s_uploadFile = LittleFS.open(dir + "/" + fname, "w");
+        s_uploadOk = (bool) s_uploadFile;
+    } else if (up.status == UPLOAD_FILE_WRITE) {
+        if (s_uploadOk && s_uploadFile) s_uploadFile.write(up.buf, up.currentSize);
+    } else if (up.status == UPLOAD_FILE_END || up.status == UPLOAD_FILE_ABORTED) {
+        if (s_uploadFile) s_uploadFile.close();
+    }
+}
+
+static void handleUploadDone() {
+    if (!checkAuth()) { webServer.send(401, "application/json", "{\"ok\":false}"); return; }
+    webServer.send(s_uploadOk ? 200 : 500, "application/json",
+                   s_uploadOk ? "{\"ok\":true}" : "{\"ok\":false}");
+}
+
 static void handleNotFound() { webServer.send(404, "text/plain", "not found"); }
 
 static void setupRoutes() {
@@ -140,6 +230,10 @@ static void setupRoutes() {
     webServer.on("/api/login", HTTP_POST, handleLogin);
     webServer.on("/api/config", HTTP_GET, handleGetConfig);
     webServer.on("/api/config", HTTP_POST, handleSetConfig);
+    webServer.on("/api/files", HTTP_GET, handleFilesList);
+    webServer.on("/api/file", HTTP_GET, handleFileDownload);
+    webServer.on("/api/file/delete", HTTP_POST, handleFileDelete);
+    webServer.on("/api/file", HTTP_POST, handleUploadDone, handleUpload);
     webServer.onNotFound(handleNotFound);
     const char *headerKeys[] = {"Cookie"};
     webServer.collectHeaders(headerKeys, 1);
