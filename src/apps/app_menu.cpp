@@ -90,6 +90,7 @@ void menu_onStart() {
         addMenuNode(&settingsMenu, &RADIO_ICON, MENU_ITEM_RADIO, &radioSettingsMenu);
         addMenuNode(&settingsMenu, &RGB_ICON, MENU_ITEM_RGB, &neopixelSettingsMenu);
         addMenuNode(&settingsMenu, &USER_ICON, MENU_ITEM_PROFILE, &profileSettingsMenu);
+        addMenuNode(&settingsMenu, &WIFI_ICON, MENU_ITEM_WEB_TOOLS, &mainMenu, &app_web_tools);
         addMenuNode(&settingsMenu, &ABOUT_ICON, MENU_ITEM_ABOUT, &subghzMenu, &app_about);
     });
     // Radio settings submenu
